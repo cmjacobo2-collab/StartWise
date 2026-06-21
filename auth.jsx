@@ -7,7 +7,7 @@ function AuthShell({ children, wide }) {
     <div style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr", placeItems: "center", background: "var(--cream-50)", padding: 24 }}>
       <div style={{ width: "100%", maxWidth: wide ? 720 : 440 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 22 }}>
-          <img src={(window.__resources && window.__resources.logo) || "assets/logo.png"} alt="Across the Table" style={{ width: 190, display: "block" }} />
+          <img src={(window.__resources && window.__resources.logo) || "logo.png"} alt="Across the Table" style={{ width: 190, display: "block" }} />
           <div style={{ font: "800 24px var(--font-display)", letterSpacing: "-0.02em", color: "var(--navy-700)", marginTop: 8 }}>StartWise</div>
           <div style={{ font: "500 10px var(--font-mono)", letterSpacing: "0.16em", color: "var(--ink-500)", marginTop: 4 }}>YOUR 12-WEEK BUSINESS LAUNCH PLANNER</div>
         </div>

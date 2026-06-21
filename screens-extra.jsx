@@ -1,182 +1,273 @@
-/* StartWise — AI-powered account setup: generate a COA + expense list for a business type */
-const { useState: useAi } = React;
+/* StartWise — core screens: Dashboard, 12-Week Plan, Budget Planner */
+const { useState: useS, useMemo: useM } = React;
+const SW = window.StartWiseData;
+const DScore = window.AcrossTheTableDesignSystem_520822;
 
-const EXP_CATS = ["Equipment & Assets", "Legal & Registration", "Sales Strategies", "Office & Operation", "Financial Planning", "Location & Infrastructure"];
-
-/* ---- Build the prompt the user's own AI account runs ---- */
-function buildPrompt(industry, businessType, stage) {
-  return [
-    `You are a small-business accountant and startup advisor.`,
-    `For a new "${businessType}" business in the "${industry}" industry, currently at the "${stage}" stage, produce (1) a tailored QuickBooks-style Chart of Accounts and (2) a startup expense list that is SPECIFIC to a ${businessType}.`,
-    `Tailor the expense timing, priorities, and selection to a business at the "${stage}" stage (e.g. an idea-stage owner needs validation and registration first; an operating business needs growth, hiring, and systems).`,
-    `Return ONLY valid minified JSON — no markdown, no commentary — matching exactly:`,
-    `{"coa":[{"num":"1000","name":"Checking Account","type":"Bank","category":"Assets","desc":"short"}],"expenses":[{"name":"...","category":"Equipment & Assets","priority":"High","est":1200,"week":3,"gl":"1500","vendorType":"...","desc":"short"}]}`,
-    `Rules: 14-16 COA accounts spanning Bank, Accounts Receivable, Other Current Asset, Fixed Asset, Accounts Payable, Credit Card, Long Term Liability, Equity, Income, Cost of Goods Sold, Expense.`,
-    `Use realistic GL numbers (1000s assets, 2000s liabilities, 3000s equity, 4000s income, 5000s COGS, 6000s expense).`,
-    `Provide 10-12 expenses unmistakably specific to a ${businessType}. expense.category MUST be one of: ${EXP_CATS.join(", ")}. expense.gl MUST equal a num that exists in coa. week is 1-12, priority is High/Medium/Low.`,
-    `Keep every "desc" under 8 words.`,
-  ].join(" ");
+/* ---------- shared KPI card ---------- */
+function Kpi({ label, value, accent, sub, tone }) {
+  const col = tone === "good" ? "var(--forest-600)" : tone === "warn" ? "var(--gold-700)" : "var(--ink-900)";
+  return (
+    <div style={{ background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: "16px 18px" }}>
+      <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)" }}>{label.toUpperCase()}</div>
+      <div style={{ font: "800 27px var(--font-display)", color: col, marginTop: 8, letterSpacing: "-0.02em" }}>{value}</div>
+      {sub && <div style={{ fontSize: 11.5, color: "var(--ink-400)", marginTop: 2 }}>{sub}</div>}
+    </div>
+  );
 }
 
-/* ---- Templated fallback when no AI account is connected / call fails ---- */
-function fallbackPlan(industry, businessType, stage) {
-  const t = businessType.replace(/\s*\(.*\)/, "");
-  const operating = /operat|launched/i.test(stage || "");
-  const coa = [
-    { num: "1000", name: "Checking Account", type: "Bank", category: "Assets", desc: "Primary operating account" },
-    { num: "1010", name: "Savings / Reserve", type: "Bank", category: "Assets", desc: "Cash reserve" },
-    { num: "1100", name: "Accounts Receivable", type: "Accounts Receivable", category: "Assets", desc: "Owed by customers" },
-    { num: "1200", name: t + " Supplies Inventory", type: "Other Current Asset", category: "Assets", desc: "Consumable supplies on hand" },
-    { num: "1500", name: t + " Equipment", type: "Fixed Asset", category: "Assets", desc: "Tools & machinery" },
-    { num: "1510", name: "Vehicles", type: "Fixed Asset", category: "Assets", desc: "Service vehicles" },
-    { num: "2000", name: "Accounts Payable", type: "Accounts Payable", category: "Liabilities", desc: "Owed to vendors" },
-    { num: "2100", name: "Credit Card Payable", type: "Credit Card", category: "Liabilities", desc: "Business card balance" },
-    { num: "2500", name: "Loans Payable", type: "Long Term Liability", category: "Liabilities", desc: "Startup & equipment financing" },
-    { num: "3000", name: "Owner's Equity", type: "Equity", category: "Equity", desc: "Owner contributions" },
-    { num: "4000", name: t + " Revenue", type: "Income", category: "Income", desc: "Primary service income" },
-    { num: "5000", name: "Cost of Goods Sold", type: "Cost of Goods Sold", category: "COGS", desc: "Direct job costs" },
-    { num: "6100", name: "Insurance Expense", type: "Expense", category: "Operating", desc: "Liability & coverage" },
-    { num: "6200", name: "Licensing & Permits", type: "Expense", category: "Operating", desc: "Registrations & permits" },
-    { num: "6300", name: "Marketing & Advertising", type: "Expense", category: "Operating", desc: "Ads & promotion" },
-    { num: "6600", name: "Software & Subscriptions", type: "Expense", category: "Operating", desc: "Booking & accounting tools" },
-  ];
-  const expenses = [
-    { name: "Business license & registration", category: "Legal & Registration", priority: "High", est: 250, week: 1, gl: "6200", vendorType: "State / Registrar", desc: "Form the entity, register name" },
-    { name: "General liability insurance", category: "Legal & Registration", priority: "High", est: 600, week: 2, gl: "6100", vendorType: "Insurance Broker", desc: "Core coverage policy" },
-    { name: t + " core equipment", category: "Equipment & Assets", priority: "High", est: 1800, week: 3, gl: "1500", vendorType: "Equipment Supplier", desc: "Primary tools for the trade" },
-    { name: t + " starter supplies", category: "Equipment & Assets", priority: "High", est: 450, week: 1, gl: "1200", vendorType: "Supplier", desc: "Initial consumable supplies" },
-    { name: "Service vehicle down payment", category: "Equipment & Assets", priority: "Medium", est: 2500, week: 5, gl: "1510", vendorType: "Auto Dealer", desc: "Reliable work vehicle" },
-    { name: "Website + online booking", category: "Sales Strategies", priority: "High", est: 900, week: 4, gl: "6600", vendorType: "Web / Software", desc: "Site with booking" },
-    { name: "Scheduling software (annual)", category: "Office & Operation", priority: "Medium", est: 360, week: 5, gl: "6600", vendorType: "Web / Software", desc: "Jobs & reminders" },
-    { name: "Vehicle wrap & signage", category: "Sales Strategies", priority: "Medium", est: 600, week: 6, gl: "6300", vendorType: "Signage / Print", desc: "Branded vehicle & signs" },
-    { name: "Launch marketing campaign", category: "Sales Strategies", priority: "High", est: 800, week: 8, gl: "6300", vendorType: "Marketing", desc: "Local ads & promos" },
-    { name: "Accounting software setup", category: "Office & Operation", priority: "Medium", est: 240, week: 7, gl: "6600", vendorType: "Web / Software", desc: "Books & invoicing" },
-    { name: "Business bank account & card processing", category: "Office & Operation", priority: "High", est: 30, week: 2, gl: "6600", vendorType: "Payment Processor", desc: "Checking account & card payments" },
-    { name: "CRM & client management software", category: "Office & Operation", priority: "Medium", est: 39, week: 7, gl: "6600", vendorType: "Software Provider", desc: "Track leads & customers" },
-    { name: "Email marketing & newsletter tool", category: "Sales Strategies", priority: "Medium", est: 25, week: 8, gl: "6300", vendorType: "Marketing", desc: "Promos & customer newsletters" },
-    { name: "Uniforms & branded apparel", category: "Equipment & Assets", priority: "Low", est: 300, week: 6, gl: "6600", vendorType: "Apparel", desc: "Crew uniforms & PPE" },
-  ];
-  // Stage tailoring: an operating business has already registered & insured
-  const filtered = operating ? expenses.filter((e) => !/license|registration|insurance/i.test(e.name)) : expenses;
-  if (operating) {
-    filtered.push({ name: "Hire & onboard first employee", category: "Office & Operation", priority: "High", est: 1200, week: 4, gl: "6500", vendorType: "Payroll / HR", desc: "Payroll setup & onboarding" });
-    filtered.push({ name: "Growth marketing retainer", category: "Sales Strategies", priority: "High", est: 1500, week: 6, gl: "6300", vendorType: "Marketing", desc: "Scale customer acquisition" });
-  }
-  return { coa, expenses: filtered };
-}
+/* =========================================================== DASHBOARD */
+function Dashboard({ tasks, totalBudget, affirmation, smsOn, products = [], startingBalance = 0 }) {
+  const m = useM(() => {
+    const fin = tasks.filter((t) => t.type === "Financial");
+    const done = tasks.filter((t) => t.status === "Completed").length;
+    const prog = tasks.filter((t) => t.status === "In Progress").length;
+    const todo = tasks.filter((t) => t.status === "To Do").length;
+    const est = fin.reduce((s, t) => s + (+t.est || 0), 0);
+    const act = fin.reduce((s, t) => s + (+t.actual || 0), 0);
+    const byCat = {};
+    fin.forEach((t) => { byCat[t.category] = (byCat[t.category] || 0) + (+t.est || 0); });
+    const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+    const phases = [[1, 3], [4, 6], [7, 9], [10, 12]];
+    const timeline = phases.map(([a, b], i) => ({
+      label: `Wk ${a}\u2013${b}`,
+      bars: [
+        { value: fin.filter((t) => t.week >= a && t.week <= b).reduce((s, t) => s + (+t.est || 0), 0), color: "var(--navy-600)" },
+        { value: fin.filter((t) => t.week >= a && t.week <= b).reduce((s, t) => s + (+t.actual || 0), 0), color: "var(--gold-500)" },
+      ],
+    }));
+    const prio = ["High", "Medium", "Low"].map((p, i) => ({
+      label: p,
+      bars: [{ value: fin.filter((t) => t.priority === p).reduce((s, t) => s + (+t.est || 0), 0), color: ["var(--red-600)", "var(--gold-500)", "var(--forest-500)"][i] }],
+    }));
+    return { fin, done, prog, todo, est, act, cats, timeline, prio };
+  }, [tasks]);
 
-function parsePlan(raw) {
-  const s = raw.indexOf("{"), e = raw.lastIndexOf("}");
-  if (s < 0 || e < 0) throw new Error("no json");
-  const obj = JSON.parse(raw.slice(s, e + 1));
-  if (!Array.isArray(obj.coa) || !Array.isArray(obj.expenses) || !obj.coa.length) throw new Error("bad shape");
-  return obj;
-}
-
-function AiGenerate({ industry, businessType, stage, plan, onPlan }) {
-  const [connected, setConnected] = useAi(false);
-  const [loading, setLoading] = useAi(false);
-  const [src, setSrc] = useAi(""); // 'ai' | 'template'
-
-  const run = async (useAiAccount) => {
-    setLoading(true);
-    try {
-      if (useAiAccount && window.claude && window.claude.complete) {
-        const raw = await window.claude.complete(buildPrompt(industry, businessType, stage));
-        onPlan(parsePlan(raw)); setSrc("ai");
-      } else {
-        await new Promise((r) => setTimeout(r, 650));
-        onPlan(fallbackPlan(industry, businessType, stage)); setSrc("template");
-      }
-    } catch (e) {
-      onPlan(fallbackPlan(industry, businessType, stage)); setSrc("template");
-    }
-    setLoading(false);
-  };
+  const remaining = totalBudget - m.act;
+  const pctUsed = totalBudget ? Math.round((m.act / totalBudget) * 100) : 0;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div>
-        <h2 style={{ font: "700 19px var(--font-display)", margin: "0 0 4px", color: "var(--ink-900)" }}>Build your books with AI</h2>
-        <p style={{ fontSize: 13.5, color: "var(--ink-500)", margin: 0 }}>
-          StartWise uses <strong style={{ color: "var(--ink-800)" }}>your own AI account</strong> to generate a Chart of Accounts and startup expense list tailored to a <strong style={{ color: "var(--ink-800)" }}>{businessType}</strong>.
-        </p>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <Callout icon="flag" title="You're 2 weeks into your launch.">
+        Keep marking tasks done — every completed financial task posts its actual cost here and into your Chart of Accounts automatically.
+      </Callout>
 
-      {!plan ? (
-        !connected ? (
-          <div style={{ border: "1px dashed var(--border-strong)", borderRadius: "var(--radius-lg)", padding: 24, textAlign: "center", background: "var(--cream-50)" }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: "var(--navy-050)", display: "grid", placeItems: "center", margin: "0 auto 14px" }}><Icon name="sparkle" size={24} color="var(--navy-700)" /></div>
-            <div style={{ font: "700 16px var(--font-display)", color: "var(--ink-900)" }}>Connect your AI account</div>
-            <p style={{ fontSize: 13, color: "var(--ink-500)", maxWidth: 380, margin: "6px auto 16px", lineHeight: 1.5 }}>Your prompts run through your connected AI service. StartWise never bills for AI usage — your history and usage stay yours.</p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <button onClick={() => setConnected(true)} style={btnPrimary}><Icon name="sparkle" size={16} /> Connect AI account</button>
-              <button onClick={() => run(false)} style={btnGhost}>Use a starter template instead</button>
-            </div>
+      {products.length > 0 && <HealthScore products={products} startingBalance={startingBalance} compact />}
+
+      {affirmation && affirmation.text && (
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-start", background: "var(--navy-900)", borderRadius: "var(--radius-lg)", padding: "18px 22px", color: "#fff" }}>
+          <Icon name="sparkle" size={20} color="var(--gold-400)" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.12em", color: "var(--gold-400)" }}>TODAY'S AFFIRMATION · {(affirmation.title || "").toUpperCase()}</div>
+            <div style={{ font: "600 17px var(--font-display)", marginTop: 6, lineHeight: 1.4 }}>{affirmation.text}</div>
+            {smsOn && <div style={{ fontSize: 12, color: "var(--text-on-dark-muted)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><Icon name="bell" size={13} /> Sent to your phone with today's daily SMS reminder</div>}
           </div>
-        ) : (
-          <div style={{ border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", padding: 24, background: "#fff" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <span style={{ width: 9, height: 9, borderRadius: 999, background: "var(--forest-600)" }}></span>
-              <span style={{ fontSize: 13, color: "var(--ink-700)" }}>AI account connected · ready to generate for <strong>{businessType}</strong></span>
-            </div>
-            <button disabled={loading} onClick={() => run(true)} style={{ ...btnPrimary, width: "100%", justifyContent: "center", padding: "13px", opacity: loading ? 0.7 : 1 }}>
-              {loading ? <Spinner /> : <Icon name="sparkle" size={17} />} {loading ? "Generating your Chart of Accounts & expenses…" : "Generate with my AI"}
-            </button>
-          </div>
-        )
-      ) : (
-        <PlanPreview plan={plan} src={src} onRegenerate={() => onPlan(null)} businessType={businessType} />
+        </div>
       )}
 
-      {!plan && <Callout icon="help"><strong>Why your own AI?</strong> Every business type needs a different Chart of Accounts. Generating it from your AI keeps StartWise affordable and the results yours to keep.</Callout>}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+        <Kpi label="Total tasks" value={tasks.length} />
+        <Kpi label="Completed" value={m.done} tone="good" sub={`${m.prog} in progress · ${m.todo} to do`} />
+        <Kpi label="Estimated spend" value={SW.fmt0(m.est)} />
+        <Kpi label="Actual spend" value={SW.fmt0(m.act)} tone="warn" />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+        <Kpi label="Total budget" value={SW.fmt0(totalBudget)} />
+        <Kpi label="Remaining budget" value={SW.fmt0(remaining)} tone="good" />
+        <Kpi label="% budget used" value={pctUsed + "%"} sub={`${SW.fmt0(m.act)} of ${SW.fmt0(totalBudget)}`} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Panel title="Budget allocation" subtitle="Estimated spend by category">
+          <Donut data={m.cats.map(([label, value], i) => ({ label, short: label.split(" ")[0], value, display: SW.fmt0(value), color: SW.catColors[label] || SW.palette[i % SW.palette.length] }))} centerTop={SW.fmt0(m.est)} centerBottom="Est. spend" />
+        </Panel>
+        <Panel title="Spend timeline" subtitle="Planned vs actual by phase">
+          <BarChart groups={m.timeline} legend={[{ label: "Planned", color: "var(--navy-600)" }, { label: "Actual", color: "var(--gold-500)" }]} />
+        </Panel>
+        <Panel title="Spending by priority" subtitle="Estimated cost grouped by priority">
+          <BarChart groups={m.prio} />
+        </Panel>
+        <Panel title="Task completion" subtitle="Status breakdown across all tasks">
+          <Donut
+            data={[
+              { label: "Completed", value: m.done, color: "var(--forest-600)" },
+              { label: "In progress", value: m.prog, color: "var(--navy-500)" },
+              { label: "To do", value: m.todo, color: "var(--ink-200)" },
+            ]}
+            centerTop={`${Math.round((m.done / tasks.length) * 100)}%`}
+            centerBottom="Complete"
+          />
+        </Panel>
+      </div>
     </div>
   );
 }
 
-function Spinner() {
-  return <span style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: 999, display: "inline-block", animation: "sw-spin 0.7s linear infinite" }}></span>;
-}
+/* =========================================================== 12-WEEK PLAN */
+function Plan({ tasks, setTasks, openEdit }) {
+  const [open, setOpen] = useS(() => new Set([1, 2]));
+  const toggle = (w) => { const n = new Set(open); n.has(w) ? n.delete(w) : n.add(w); setOpen(n); };
 
-function PlanPreview({ plan, src, onRegenerate, businessType }) {
+  const done = tasks.filter((t) => t.status === "Completed").length;
+  const prog = tasks.filter((t) => t.status === "In Progress").length;
+  const todo = tasks.filter((t) => t.status === "To Do").length;
+  const pct = Math.round((done / tasks.length) * 100);
+
+  const cycle = (t) => {
+    const order = ["To Do", "In Progress", "Completed"];
+    const next = order[(order.indexOf(t.status) + 1) % 3];
+    setTasks(tasks.map((x) => (x.id === t.id ? { ...x, status: next } : x)));
+  };
+  const moveWeek = (t, w) => setTasks(tasks.map((x) => (x.id === t.id ? { ...x, week: +w, due: SW.due(+w) } : x)));
+
   return (
-    <div style={{ border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", overflow: "hidden", background: "#fff" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", borderBottom: "1px solid var(--border-default)", background: "var(--forest-050)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <Icon name="check" size={17} color="var(--forest-600)" />
-          <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--forest-700)" }}>
-            {src === "ai" ? "Generated by your AI" : "Starter template"} · {plan.coa.length} accounts, {plan.expenses.length} expenses
-          </span>
-        </div>
-        <button onClick={onRegenerate} style={{ ...btnGhost, padding: "6px 12px", fontSize: 12.5 }}>Regenerate</button>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
-        <div style={{ borderRight: "1px solid var(--border-default)" }}>
-          <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)", padding: "12px 16px 8px" }}>CHART OF ACCOUNTS</div>
-          <div style={{ maxHeight: 220, overflowY: "auto", padding: "0 16px 14px" }}>
-            {plan.coa.map((a, i) => (
-              <div key={i} style={{ display: "flex", gap: 10, padding: "6px 0", borderTop: i ? "1px solid var(--border-subtle)" : "none", fontSize: 12.5 }}>
-                <span style={{ fontFamily: "var(--font-mono)", color: "var(--navy-700)", fontWeight: 600, width: 42 }}>{a.num}</span>
-                <span style={{ flex: 1, color: "var(--ink-800)" }}>{a.name}</span>
-                <span style={{ color: "var(--ink-400)", fontSize: 11 }}>{a.type}</span>
-              </div>
-            ))}
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <Panel pad={22}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div>
+            <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.12em", color: "var(--ink-500)" }}>OVERALL LAUNCH PROGRESS</div>
+            <div style={{ fontSize: 13, color: "var(--ink-500)", marginTop: 4 }}>Your complete 12-week roadmap, backward from {SW.business.launchDate}. Click a week to expand.</div>
           </div>
+          <div style={{ font: "800 34px var(--font-display)", color: "var(--forest-600)" }}>{pct}%</div>
         </div>
-        <div>
-          <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)", padding: "12px 16px 8px" }}>STARTUP EXPENSES</div>
-          <div style={{ maxHeight: 220, overflowY: "auto", padding: "0 16px 14px" }}>
-            {plan.expenses.map((e, i) => (
-              <div key={i} style={{ display: "flex", gap: 10, padding: "6px 0", borderTop: i ? "1px solid var(--border-subtle)" : "none", fontSize: 12.5 }}>
-                <span style={{ flex: 1, color: "var(--ink-800)" }}>{e.name}</span>
-                <span style={{ fontFamily: "var(--font-mono)", color: "var(--ink-600)" }}>{StartWiseData.fmt0(e.est)}</span>
+        <ProgressBar value={pct} height={10} />
+        <div style={{ display: "flex", gap: 28, marginTop: 16 }}>
+          {[["Completed", done, "var(--forest-600)"], ["In progress", prog, "var(--navy-500)"], ["To do", todo, "var(--ink-500)"], ["Total tasks", tasks.length, "var(--ink-900)"]].map(([l, v, c]) => (
+            <div key={l}>
+              <div style={{ font: "800 22px var(--font-display)", color: c }}>{v}</div>
+              <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)" }}>{l.toUpperCase()}</div>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => {
+        const wt = tasks.filter((t) => t.week === w);
+        const wd = wt.filter((t) => t.status === "Completed").length;
+        const isOpen = open.has(w);
+        return (
+          <div key={w} style={{ background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
+            <button onClick={() => toggle(w)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 16, padding: "16px 22px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: wd === wt.length && wt.length ? "var(--forest-050)" : "var(--cream-100)", display: "grid", placeItems: "center", font: "800 14px var(--font-display)", color: wd === wt.length && wt.length ? "var(--forest-600)" : "var(--navy-700)", flexShrink: 0 }}>{w}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--gold-700)" }}>WEEK {w}</span>
+                  <span style={{ font: "700 15.5px var(--font-display)", color: "var(--ink-900)" }}>{SW.weekThemes[w]}</span>
+                </div>
+                <div style={{ fontSize: 12.5, color: "var(--ink-500)", marginTop: 2 }}>{wt.length ? `${wd}/${wt.length} done` : "No tasks scheduled"}</div>
               </div>
-            ))}
+              <div style={{ width: 90 }}><ProgressBar value={wt.length ? (wd / wt.length) * 100 : 0} /></div>
+              <Icon name="chevron" size={18} color="var(--ink-400)" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
+            </button>
+            {isOpen && (
+              <div style={{ padding: "0 22px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+                {wt.length === 0 && <div style={{ fontSize: 13, color: "var(--ink-400)", padding: "8px 0" }}>Nothing here yet — add a task to this week.</div>}
+                {wt.map((t) => (
+                  <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", background: "var(--cream-50)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)" }}>
+                    <button onClick={() => cycle(t)} title="Toggle status" style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${t.status === "Completed" ? "var(--forest-600)" : t.status === "In Progress" ? "var(--navy-500)" : "var(--ink-300)"}`, background: t.status === "Completed" ? "var(--forest-600)" : "transparent", cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                      {t.status === "Completed" && <Icon name="check" size={13} color="#fff" />}
+                      {t.status === "In Progress" && <span style={{ width: 8, height: 8, borderRadius: 999, background: "var(--navy-500)" }}></span>}
+                    </button>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-900)", textDecoration: t.status === "Completed" ? "line-through" : "none", textDecorationColor: "var(--ink-300)" }}>{t.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--ink-500)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.desc}</div>
+                    </div>
+                    <TypeTag type={t.type} />
+                    <PriorityPill p={t.priority} />
+                    {t.type === "Financial" && <span style={{ fontFamily: "var(--font-mono)", fontSize: 12.5, color: "var(--ink-600)", minWidth: 64, textAlign: "right" }}>{SW.fmt0(t.est)}</span>}
+                    <select value={t.week} onChange={(e) => moveWeek(t, e.target.value)} title="Move to week" style={{ fontSize: 12, padding: "4px 6px", border: "1px solid var(--border-default)", borderRadius: 6, background: "#fff", color: "var(--ink-600)" }}>
+                      {Array.from({ length: 12 }, (_, k) => k + 1).map((k) => <option key={k} value={k}>Wk {k}</option>)}
+                    </select>
+                    <button onClick={() => openEdit(t)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--ink-400)", padding: 4 }}><Icon name="pencil" size={15} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }
 
-Object.assign(window, { AiGenerate, fallbackPlan });
+/* =========================================================== BUDGET PLANNER */
+function Budget({ tasks, setTasks, openEdit, role }) {
+  const [cat, setCat] = useS("All");
+  const [stat, setStat] = useS("All");
+  const [q, setQ] = useS("");
+  const fin = tasks.filter((t) => t.type === "Financial");
+  const cats = ["All", ...Array.from(new Set(fin.map((t) => t.category)))];
+  const rows = fin.filter((t) => (cat === "All" || t.category === cat) && (stat === "All" || t.status === stat) && t.name.toLowerCase().includes(q.toLowerCase()));
+  const totEst = rows.reduce((s, t) => s + (+t.est || 0), 0);
+  const totAct = rows.reduce((s, t) => s + (+t.actual || 0), 0);
+  const del = (id) => setTasks(tasks.filter((t) => t.id !== id));
+
+  const sel = { padding: "8px 12px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", fontSize: 13, background: "#fff", color: "var(--ink-700)" };
+
+  return (
+    <Panel
+      title="All expenses"
+      subtitle={`${rows.length} financial tasks linked to your Chart of Accounts`}
+      right={
+        <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 10px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", background: "#fff" }}>
+            <Icon name="search" size={15} color="var(--ink-400)" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search expenses" style={{ border: "none", outline: "none", fontSize: 13, padding: "8px 0", width: 130, background: "transparent" }} />
+          </div>
+          <select value={cat} onChange={(e) => setCat(e.target.value)} style={sel}>{cats.map((c) => <option key={c}>{c === "All" ? "All categories" : c}</option>)}</select>
+          <select value={stat} onChange={(e) => setStat(e.target.value)} style={sel}>{["All", ...SW.STATUSES].map((s) => <option key={s}>{s === "All" ? "All statuses" : s}</option>)}</select>
+        </div>
+      }
+    >
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5 }}>
+          <thead>
+            <tr style={{ textAlign: "left" }}>
+              {["Expense", "Category", "Priority", "Status", "Est. cost", "Actual", "Difference", "Due", ""].map((h, i) => (
+                <th key={h + i} style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.08em", color: "var(--ink-500)", padding: "0 12px 10px", textAlign: i >= 4 && i <= 6 ? "right" : "left", whiteSpace: "nowrap" }}>{h.toUpperCase()}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((t) => {
+              const diff = (+t.actual || 0) - (+t.est || 0);
+              return (
+                <tr key={t.id} style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                  <td style={{ padding: "13px 12px" }}>
+                    <div style={{ fontWeight: 600, color: "var(--ink-900)" }}>{t.name}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--ink-400)", fontFamily: "var(--font-mono)" }}>GL {t.gl} · Wk {t.week}</div>
+                  </td>
+                  <td style={{ padding: "13px 12px", color: "var(--ink-600)" }}>{t.category}</td>
+                  <td style={{ padding: "13px 12px" }}><PriorityPill p={t.priority} /></td>
+                  <td style={{ padding: "13px 12px" }}><StatusPill status={t.status} followUp={t.followUp} /></td>
+                  <td style={{ padding: "13px 12px", textAlign: "right", fontFamily: "var(--font-mono)" }}>{SW.fmt(t.est)}</td>
+                  <td style={{ padding: "13px 12px", textAlign: "right", fontFamily: "var(--font-mono)", color: t.actual ? "var(--ink-900)" : "var(--ink-300)" }}>{SW.fmt(t.actual)}</td>
+                  <td style={{ padding: "13px 12px", textAlign: "right", fontFamily: "var(--font-mono)", color: diff > 0 ? "var(--red-600)" : diff < 0 ? "var(--forest-600)" : "var(--ink-300)" }}>{t.actual ? (diff > 0 ? "+" : "") + SW.fmt(diff) : "—"}</td>
+                  <td style={{ padding: "13px 12px", fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-500)", whiteSpace: "nowrap" }}>{t.due || "—"}</td>
+                  <td style={{ padding: "13px 12px" }}>
+                    <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                      <button onClick={() => openEdit(t)} title="Edit" style={iconBtn}><Icon name="pencil" size={15} /></button>
+                      {role === "Admin" && <button onClick={() => del(t.id)} title="Delete" style={{ ...iconBtn, color: "var(--red-600)" }}><Icon name="trash" size={15} /></button>}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr style={{ borderTop: "2px solid var(--border-strong)" }}>
+              <td colSpan={4} style={{ padding: "14px 12px", fontWeight: 700, color: "var(--ink-900)" }}>Total (financial tasks)</td>
+              <td style={{ padding: "14px 12px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{SW.fmt(totEst)}</td>
+              <td style={{ padding: "14px 12px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{SW.fmt(totAct)}</td>
+              <td colSpan={3}></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      {role !== "Admin" && <div style={{ marginTop: 14 }}><Callout icon="lock">As a team member you can add and edit expenses, but only the admin can delete them.</Callout></div>}
+    </Panel>
+  );
+}
+
+const iconBtn = { display: "grid", placeItems: "center", width: 30, height: 30, border: "1px solid var(--border-default)", borderRadius: 8, background: "#fff", cursor: "pointer", color: "var(--ink-600)" };
+
+Object.assign(window, { Dashboard, Plan, Budget, Kpi });

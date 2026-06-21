@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StartWise — Your 12-Week Business Launch Planner</title>
+
+  <!-- PWA / installable app -->
+  <meta name="theme-color" content="#1B344F" />
+  <meta name="description" content="Plan, budget, price, and grow your small business — from idea to launch and beyond. By Across the Table." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="StartWise" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+
+  <!-- Across the Table design system -->
+  <link rel="stylesheet" href="_ds/across-the-table-design-system-52082246-cccd-4b7c-b721-c75c41bcccd7/styles.css" />
+
+  <style>
+    /* Page-level token override: remap near-black surfaces/text to the app's deep navy */
+    :root {
+      --ink-900: #091D30;
+      --navy-950: #091D30;
+      --navy-900: #091D30;
+      --text-strong: #091D30;
+      --bg-dark: #091D30;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--cream-50);
+      color: var(--text-body);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    #root { min-height: 100vh; }
+    button { font-family: var(--font-sans); }
+    input, select, textarea { font-family: var(--font-sans); }
+    ::selection { background: var(--gold-100); }
+    /* slim scrollbars */
+    *::-webkit-scrollbar { width: 10px; height: 10px; }
+    *::-webkit-scrollbar-thumb { background: var(--sand-300); border-radius: 999px; border: 2px solid var(--cream-50); }
+    *::-webkit-scrollbar-track { background: transparent; }
+
+    /* density tweak — overrides inline table padding */
+    [data-density="compact"] table td { padding-top: 7px !important; padding-bottom: 7px !important; }
+    [data-density="compact"] table { font-size: 12.5px !important; }
+
+    button:hover { filter: brightness(0.97); }
+    a { color: var(--text-link); }
+    @keyframes sw-spin { to { transform: rotate(360deg); } }
+
+    /* never let the page scroll sideways; the off-canvas mobile drawer lives off-screen left */
+    html, body { max-width: 100%; overflow-x: hidden; }
+
+    /* ---- Mobile / responsive (phones & small tablets) ----
+       The layout is built with inline styles, so these author rules use
+       !important to win over inline declarations on small screens only. */
+    @media (max-width: 760px) {
+      /* content goes full width with tighter gutters */
+      #root main { padding: 16px 14px 40px !important; max-width: 100% !important; }
+      #root header { padding: 11px 14px !important; }
+
+      /* collapse every multi-column grid to a single column so cards/tiles
+         stop being crushed into slivers */
+      #root main [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+
+      /* charts and other svg art scale down to fit instead of overflowing */
+      #root main svg { max-width: 100%; height: auto; }
+
+      /* wide tables (Chart of Accounts, RunBook) scroll horizontally
+         inside their card rather than pushing the whole page wide */
+      #root main table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+
+      /* keep dialogs/modals inside the viewport */
+      #root [style*="max-width: 580px"],
+      #root [style*="max-width: 560px"],
+      #root [style*="max-width: 460px"] { max-width: 94vw !important; }
+    }
+
+    /* Shown only if the runtime libraries fail to load (no more silent blank page) */
+    #__sw_boot_error {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      place-items: center; padding: 24px; text-align: center;
+      background: var(--cream-50, #FBF8F2); color: #091D30;
+      font-family: var(--font-sans, system-ui, sans-serif);
+    }
+    #__sw_boot_error .card {
+      max-width: 440px; background: #fff; border: 1px solid #E0D9CB;
+      border-radius: 14px; padding: 28px 26px;
+      box-shadow: 0 14px 30px -14px rgba(20,40,63,0.25);
+    }
+    #__sw_boot_error h1 { font: 800 22px var(--font-display, system-ui); margin: 0 0 10px; }
+    #__sw_boot_error p { font-size: 14.5px; line-height: 1.55; color: #344150; margin: 0 0 8px; }
+    #__sw_boot_error code { font-family: var(--font-mono, monospace); font-size: 12.5px; background: #F4EFE5; padding: 1px 6px; border-radius: 6px; }
+  </style>
+
+  <!--
+    Runtime libraries (React 18.3.1 + Babel standalone 7.29.0).
+    Loaded from jsDelivr (primary). If a request fails, the inline guard after
+    each tag pulls the same pinned version from unpkg. No subresource-integrity
+    hashes are used: a hash mismatch is the classic cause of a silent blank page,
+    and the version pin already fixes what loads. JSX is transpiled in-browser by
+    Babel (no build step), exactly as the prototype intended.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+  <script>window.React || document.write('<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"><\/script>');</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+  <script>window.ReactDOM || document.write('<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"><\/script>');</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <script>window.Babel || document.write('<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"

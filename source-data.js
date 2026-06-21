@@ -1,258 +1,252 @@
-/* StartWise — House Cleaning Edition sample data + helpers */
-(function () {
-  "use strict";
+/* StartWise — shell: icons, sidebar, topbar, shared bits */
+const DSatt = window.AcrossTheTableDesignSystem_520822;
 
-  // ---- Business profile ----
-  const business = {
-    accountNumber: "SW-HC-2048",
-    fullName: "Dana Rivera",
-    businessName: "FreshNest Cleaning Co.",
-    industry: "Home Service Industry",
-    businessType: "Cleaning Companies",
-    edition: "House Cleaning Edition",
-    email: "dana@freshnestclean.com",
-    phone: "(602) 555-0148",
-    dateJoined: "2026-06-01",
-    setupAt: "2026-06-01T14:22:00",
-    membership: "Active",
-    locked: false, // becomes true after 15 days
-    launchDate: "2026-08-31",
-    smsReminders: true,
-    smsFrequency: "Daily",
-    termsAccepted: true,
-    termsAcceptedAt: "2026-06-01T14:22:00",
+/* ---- Responsive: true on phones / small tablets ---- */
+function useIsMobile(bp = 760) {
+  const q = "(max-width:" + bp + "px)";
+  const get = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(q).matches : false);
+  const [m, setM] = React.useState(get);
+  React.useEffect(() => {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia(q);
+    const on = (e) => setM(e.matches);
+    mq.addEventListener ? mq.addEventListener("change", on) : mq.addListener(on);
+    setM(mq.matches);
+    return () => { mq.removeEventListener ? mq.removeEventListener("change", on) : mq.removeListener(on); };
+  }, [q]);
+  return m;
+}
+
+/* ---- Inline Lucide-style icon set (24x24, 2px stroke) ---- */
+const ICONS = {
+  dashboard: ["M3 3h7v9H3z", "M14 3h7v5h-7z", "M14 12h7v9h-7z", "M3 16h7v5H3z"],
+  calendar: ["M3 4h18v18H3z", "M16 2v4", "M8 2v4", "M3 10h18", "M8 14h.01", "M12 14h.01", "M16 14h.01", "M8 18h.01", "M12 18h.01"],
+  dollar: ["M12 2v20", "M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"],
+  chart: ["M3 3v18h18", "M18 17V9", "M13 17V5", "M8 17v-3"],
+  runbook: ["M9 2h6v4H9z", "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2", "M9 12h6", "M9 16h6"],
+  ledger: ["M4 3h16v18H4z", "M4 9h16", "M4 15h16", "M10 3v18"],
+  briefcase: ["M2 7h20v14H2z", "M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"],
+  help: ["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", "M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3", "M12 17h.01"],
+  plus: ["M5 12h14", "M12 5v14"],
+  download: ["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", "M7 10l5 5 5-5", "M12 15V3"],
+  x: ["M18 6 6 18", "M6 6l12 12"],
+  pencil: ["M12 20h9", "M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"],
+  trash: ["M3 6h18", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", "M10 11v6", "M14 11v6"],
+  chevron: ["M6 9l6 6 6-6"],
+  check: ["M20 6 9 17l-5-5"],
+  search: ["M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z", "M21 21l-4.3-4.3"],
+  arrowRight: ["M5 12h14", "M12 5l7 7-7 7"],
+  logout: ["M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", "M16 17l5-5-5-5", "M21 12H9"],
+  printer: ["M6 9V2h12v7", "M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2", "M6 14h12v8H6z"],
+  file: ["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z", "M14 2v6h6", "M16 13H8", "M16 17H8"],
+  sliders: ["M4 21v-7", "M4 10V3", "M12 21v-9", "M12 8V3", "M20 21v-5", "M20 12V3", "M1 14h6", "M9 8h6", "M17 16h6"],
+  sun: ["M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z", "M12 1v2", "M12 21v2", "M4.2 4.2l1.4 1.4", "M18.4 18.4l1.4 1.4", "M1 12h2", "M21 12h2", "M4.2 19.8l1.4-1.4", "M18.4 5.6l1.4-1.4"],
+  lock: ["M5 11h14v10H5z", "M8 11V7a4 4 0 0 1 8 0v4"],
+  bell: ["M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9", "M13.7 21a2 2 0 0 1-3.4 0"],
+  flag: ["M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z", "M4 22v-7"],
+  star: ["M12 2l3 7 7 .5-5.5 4.5L18 21l-6-4-6 4 1.5-7L2 9.5 9 9z"],
+  user: ["M20 21a8 8 0 1 0-16 0", "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
+  mail: ["M4 4h16v16H4z", "M22 6l-10 7L2 6"],
+  book: ["M4 19.5A2.5 2.5 0 0 1 6.5 17H20", "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"],
+  sparkle: ["M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"],
+  grip: ["M9 5h.01", "M9 12h.01", "M9 19h.01", "M15 5h.01", "M15 12h.01", "M15 19h.01"],
+  shield: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"],
+  scale: ["M12 3v18", "M5 7h14", "M7 7l-3 7h6z", "M17 7l-3 7h6z", "M8 21h8"],
+  package: ["M12 2 3 7v10l9 5 9-5V7z", "M3 7l9 5 9-5", "M12 12v10"],
+  trending: ["M3 17l6-6 4 4 8-8", "M21 7v6h-6"],
+  wallet: ["M3 7a2 2 0 0 1 2-2h14v4", "M3 7v10a2 2 0 0 0 2 2h15V7z", "M17 13h.01"],
+};
+
+function Icon({ name, size = 20, color = "currentColor", strokeWidth = 2, style }) {
+  const paths = ICONS[name] || [];
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style} aria-hidden="true">
+      {paths.map((d, i) => (<path key={i} d={d} />))}
+    </svg>
+  );
+}
+
+/* ---- Pills ---- */
+function StatusPill({ status, followUp }) {
+  const map = {
+    "To Do": { bg: "var(--ink-100)", fg: "var(--ink-600)" },
+    "In Progress": { bg: "var(--info-bg)", fg: "var(--info)" },
+    "Follow-Up": { bg: "var(--gold-050)", fg: "var(--gold-700)" },
+    "Completed": { bg: "var(--success-bg)", fg: "var(--success)" },
   };
+  const s = map[status] || map["To Do"];
+  const label = status === "Follow-Up" && followUp ? "Follow-Up · " + followUp.slice(5) : status;
+  return <span style={{ background: s.bg, color: s.fg, fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 999, whiteSpace: "nowrap" }}>{label}</span>;
+}
+function PriorityPill({ p }) {
+  const map = { High: "var(--red-600)", Medium: "var(--gold-700)", Low: "var(--ink-500)" };
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: map[p], fontWeight: 500 }}>
+      <span style={{ width: 7, height: 7, borderRadius: 999, background: map[p] }}></span>{p}
+    </span>
+  );
+}
+function TypeTag({ type }) {
+  const fin = type === "Financial";
+  return <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 6, background: fin ? "var(--forest-050)" : "var(--navy-050)", color: fin ? "var(--forest-700)" : "var(--navy-600)" }}>{fin ? "Financial" : "Operational"}</span>;
+}
 
-  // ---- Funding sources ----
-  const funding = [
-    { source: "Personal Savings", amount: 12000, on: true },
-    { source: "Friends & Family", amount: 5000, on: true },
-    { source: "SBA Loan", amount: 8000, on: true },
-    { source: "Business Loan", amount: 0, on: false },
-    { source: "Investor Funding", amount: 0, on: false },
-    { source: "Grants", amount: 0, on: false },
-    { source: "Credit Cards", amount: 0, on: false },
-    { source: "Equipment Financing", amount: 0, on: false },
-    { source: "Crowdfunding", amount: 0, on: false },
-    { source: "Other", amount: 0, on: false },
-  ];
+/* ---- Callout (gold/cream info box) ---- */
+function Callout({ children, icon = "sparkle", title }) {
+  return (
+    <div style={{ display: "flex", gap: 12, background: "var(--gold-050)", border: "1px solid var(--gold-100)", borderRadius: "var(--radius-md)", padding: "14px 16px" }}>
+      <div style={{ color: "var(--gold-700)", flexShrink: 0, marginTop: 1 }}><Icon name={icon} size={18} /></div>
+      <div style={{ fontSize: 13.5, color: "var(--ink-700)", lineHeight: 1.5 }}>
+        {title && <div style={{ fontWeight: 700, color: "var(--ink-900)", marginBottom: 2 }}>{title}</div>}
+        {children}
+      </div>
+    </div>
+  );
+}
 
-  // ---- Account types ----
-  const accountTypes = ["Asset", "Liability", "Equity", "Revenue", "Cost of Goods Sold", "Expense"];
+/* ---- Card surface ---- */
+function Panel({ title, subtitle, right, children, pad = 24, style }) {
+  return (
+    <div style={{ background: "linear-gradient(152deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.66) 46%, rgba(244,239,229,0.58) 100%)", backdropFilter: "blur(14px) saturate(125%)", WebkitBackdropFilter: "blur(14px) saturate(125%)", border: "1px solid rgba(255,255,255,0.65)", borderRadius: "var(--radius-lg)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(224,217,203,0.35), 0 1px 2px rgba(20,40,63,0.05), 0 14px 30px -14px rgba(20,40,63,0.20)", ...style }}>
+      {(title || right) && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, padding: `${pad}px ${pad}px 0` }}>
+          <div>
+            {title && <div style={{ font: "700 17px var(--font-display)", color: "var(--ink-900)", letterSpacing: "-0.01em" }}>{title}</div>}
+            {subtitle && <div style={{ fontSize: 12.5, color: "var(--ink-500)", marginTop: 3 }}>{subtitle}</div>}
+          </div>
+          {right}
+        </div>
+      )}
+      <div style={{ padding: pad }}>{children}</div>
+    </div>
+  );
+}
 
-  // ---- Chart of Accounts (House Cleaning specific) ----
-  const coa = [
-    { num: "1000", name: "Cash", type: "Asset", category: "Current Assets", desc: "Operating bank account" },
-    { num: "1100", name: "Accounts Receivable", type: "Asset", category: "Current Assets", desc: "Amounts owed by clients" },
-    { num: "1200", name: "Cleaning Supplies Inventory", type: "Asset", category: "Current Assets", desc: "On-hand consumable supplies" },
-    { num: "1500", name: "Equipment", type: "Asset", category: "Fixed Assets", desc: "Vacuums, scrubbers, carts" },
-    { num: "1510", name: "Vehicles", type: "Asset", category: "Fixed Assets", desc: "Service vehicles" },
-    { num: "1600", name: "Accumulated Depreciation", type: "Asset", category: "Fixed Assets", desc: "Contra-asset for equipment & vehicles" },
-    { num: "2000", name: "Accounts Payable", type: "Liability", category: "Current Liabilities", desc: "Amounts owed to vendors" },
-    { num: "2100", name: "Credit Card Payable", type: "Liability", category: "Current Liabilities", desc: "Business card balance" },
-    { num: "2500", name: "Loans Payable", type: "Liability", category: "Long-Term Liabilities", desc: "SBA & equipment financing" },
-    { num: "3000", name: "Owner's Equity", type: "Equity", category: "Equity", desc: "Owner contributions" },
-    { num: "3100", name: "Owner's Draw", type: "Equity", category: "Equity", desc: "Owner withdrawals" },
-    { num: "4000", name: "Cleaning Revenue", type: "Revenue", category: "Income", desc: "Recurring residential cleans" },
-    { num: "4100", name: "Deep Clean Revenue", type: "Revenue", category: "Income", desc: "One-time deep & move-out cleans" },
-    { num: "5000", name: "Cost of Goods Sold", type: "Cost of Goods Sold", category: "COGS", desc: "Direct job costs" },
-    { num: "5100", name: "Cleaning Supplies Expense", type: "Cost of Goods Sold", category: "COGS", desc: "Consumables used on jobs" },
-    { num: "6000", name: "Operating Expenses", type: "Expense", category: "Operating", desc: "General overhead" },
-    { num: "6100", name: "Insurance Expense", type: "Expense", category: "Operating", desc: "Liability & janitorial bond" },
-    { num: "6200", name: "Licensing & Permits", type: "Expense", category: "Operating", desc: "Business license, registrations" },
-    { num: "6300", name: "Marketing & Advertising", type: "Expense", category: "Operating", desc: "Ads, signage, branding" },
-    { num: "6400", name: "Vehicle & Fuel", type: "Expense", category: "Operating", desc: "Fuel, maintenance, wraps" },
-    { num: "6600", name: "Software & Subscriptions", type: "Expense", category: "Operating", desc: "Booking, scheduling, accounting" },
-  ];
+/* ---- Sidebar ---- */
+const NAV = [
+  { group: "Overview", items: [
+    { id: "dashboard", label: "Dashboard", icon: "dashboard" },
+    { id: "plan", label: "12-Week Plan", icon: "calendar" },
+  ]},
+  { group: "Financials", items: [
+    { id: "budget", label: "Budget Planner", icon: "dollar" },
+    { id: "products", label: "Products & Services", icon: "package" },
+    { id: "revenue", label: "Revenue Planner", icon: "trending" },
+    { id: "cashflow", label: "Cash Flow", icon: "wallet" },
+    { id: "reports", label: "Reports", icon: "chart" },
+    { id: "coa", label: "Chart of Accounts", icon: "ledger" },
+  ]},
+  { group: "Operations", items: [
+    { id: "runbook", label: "Vendors & RunBook", icon: "runbook" },
+  ]},
+  { group: "Settings", items: [
+    { id: "business", label: "Business Info", icon: "briefcase" },
+    { id: "legal", label: "Legal & Compliance", icon: "scale" },
+  ]},
+  { group: "Learn", items: [
+    { id: "knowledge", label: "Knowledge Center", icon: "help" },
+  ]},
+];
 
-  // ---- Priority + status enums ----
-  const PRIORITIES = ["High", "Medium", "Low"];
-  const STATUSES = ["To Do", "In Progress", "Follow-Up", "Completed"];
+function Sidebar({ route, setRoute, accent, business, edition, mobile, open, onClose }) {
+  const pos = mobile
+    ? { position: "fixed", top: 0, left: 0, zIndex: 80, transform: open ? "translateX(0)" : "translateX(-110%)", transition: "transform .25s var(--ease-out)", boxShadow: open ? "0 24px 56px rgba(11,22,35,0.45)" : "none" }
+    : { position: "sticky", top: 0 };
+  const go = (id) => { setRoute(id); if (mobile && onClose) onClose(); };
+  return (
+    <>
+      {mobile && open && <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(9,29,48,0.5)", zIndex: 75 }} aria-hidden="true" />}
+      <aside style={{ width: 248, flexShrink: 0, background: "var(--navy-900)", color: "var(--text-on-dark)", display: "flex", flexDirection: "column", height: "100vh", ...pos }}>
+      <div style={{ padding: "20px 18px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, borderBottom: "1px solid var(--border-dark)" }}>
+        <div style={{ width: "100%", background: "#fff", borderRadius: 12, padding: "12px 16px", display: "grid", placeItems: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.18)" }}>
+          <img src={(window.__resources && window.__resources.logo) || "assets/logo.png"} alt="Across the Table" style={{ width: "100%", maxWidth: 150, display: "block" }} />
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ font: "800 21px var(--font-display)", letterSpacing: "-0.02em" }}>StartWise</div>
+          <div style={{ font: "500 9.5px var(--font-mono)", letterSpacing: "0.14em", color: "var(--text-on-dark-muted)", marginTop: 3 }}>STARTUP LAUNCH PLANNER</div>
+          <div style={{ fontSize: 10, color: "var(--gold-400)", marginTop: 4 }}>{edition}</div>
+        </div>
+      </div>
+      <nav style={{ flex: 1, overflowY: "auto", padding: "14px 12px" }}>
+        {NAV.map((sec) => (
+          <div key={sec.group} style={{ marginBottom: 16 }}>
+            <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.14em", color: "var(--text-on-dark-muted)", padding: "0 10px 7px" }}>{sec.group.toUpperCase()}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {sec.items.map((it) => {
+                const active = route === it.id;
+                return (
+                  <button
+                    key={it.id}
+                    onClick={() => go(it.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 10px", borderRadius: "var(--radius-md)", border: "none", cursor: "pointer", textAlign: "left", font: "500 14px var(--font-sans)", background: active ? accent : "transparent", color: active ? "#fff" : "var(--text-on-dark)", transition: "background .13s, color .13s" }}
+                    onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+                    onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <Icon name={it.icon} size={18} color={active ? "#fff" : "var(--gold-400)"} />
+                    {it.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+      <div style={{ borderTop: "1px solid var(--border-dark)", padding: "14px 18px" }}>
+        <div style={{ fontSize: 13, fontWeight: 700 }}>{business.businessName}</div>
+        <div style={{ fontSize: 11, color: "var(--text-on-dark-muted)" }}>{business.businessType}</div>
+        <a href="mailto:info@acrossthetable.biz" style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 12, fontSize: 11.5, color: "var(--gold-400)", textDecoration: "none" }}>
+          <Icon name="mail" size={14} /> acrossthetable.biz
+        </a>
+      </div>
+      </aside>
+    </>
+  );
+}
 
-  const weekThemes = {
-    1: "Business foundation",
-    2: "Legal & insurance",
-    3: "Core equipment",
-    4: "Digital presence",
-    5: "Mobility & scheduling",
-    6: "Brand & uniforms",
-    7: "Systems & books",
-    8: "Marketing push",
-    9: "Pricing & packages",
-    10: "Hiring & training",
-    11: "Soft launch",
-    12: "Grand opening",
-  };
+/* ---- TopBar ---- */
+const iconBtnTop = { display: "grid", placeItems: "center", width: 38, height: 38, background: "var(--surface-card)", color: "var(--ink-700)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", cursor: "pointer", flexShrink: 0 };
 
-  // due date helper relative to joined date
-  function due(week) {
-    const start = new Date("2026-06-08");
-    const d = new Date(start.getTime() + (week - 1) * 7 * 86400000);
-    return d.toISOString().slice(0, 10);
-  }
+function TopBar({ title, user, onAddTask, onLibrary, onExport, onSignOut, onTweaks, onMenu, mobile }) {
+  const { Avatar } = DSatt;
+  return (
+    <header style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: mobile ? 8 : 16, padding: "14px 28px", background: "rgba(251,248,242,0.86)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", borderBottom: "1px solid var(--border-default)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+        {mobile && (
+          <button onClick={onMenu} title="Menu" aria-label="Open menu" style={iconBtnTop}><Icon name="grip" size={18} /></button>
+        )}
+        <h1 style={{ font: (mobile ? "700 17px" : "700 22px") + " var(--font-display)", color: "var(--ink-900)", letterSpacing: "-0.02em", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{title}</h1>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: mobile ? 6 : 10, flexShrink: 0 }}>
+        {!mobile && (
+          <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "5px 12px 5px 6px", background: "var(--surface-card)", border: "1px solid var(--border-default)", borderRadius: 999 }}>
+            <Avatar name={user.name} size="sm" />
+            <div style={{ lineHeight: 1.15 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-900)" }}>{user.name}</div>
+            </div>
+            <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.08em", color: "var(--gold-700)", background: "var(--gold-050)", padding: "2px 7px", borderRadius: 999 }}>{user.role.toUpperCase()}</span>
+            <button onClick={onSignOut} title="Sign out" style={{ display: "flex", border: "none", background: "transparent", cursor: "pointer", color: "var(--ink-400)", padding: 2 }}><Icon name="logout" size={16} /></button>
+          </div>
+        )}
+        {!mobile && <button onClick={onExport} style={btnGhost}><Icon name="download" size={16} /> Export CSV</button>}
+        {!mobile && onLibrary && <button onClick={onLibrary} style={btnGhost}><Icon name="book" size={16} /> Task library</button>}
+        {!mobile && <button onClick={onAddTask} style={btnPrimary}><Icon name="plus" size={16} /> Add Task</button>}
 
-  let _id = 0;
-  const tid = () => "t" + (++_id);
+        {mobile && <button onClick={onExport} title="Export CSV" aria-label="Export CSV" style={iconBtnTop}><Icon name="download" size={17} /></button>}
+        {mobile && onLibrary && <button onClick={onLibrary} title="Task library" aria-label="Task library" style={iconBtnTop}><Icon name="book" size={17} /></button>}
+        {mobile && <button onClick={onAddTask} title="Add task" aria-label="Add task" style={{ ...btnPrimary, padding: "10px 12px" }}><Icon name="plus" size={17} /></button>}
+        {mobile && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 6px 4px 4px", background: "var(--surface-card)", border: "1px solid var(--border-default)", borderRadius: 999 }}>
+            <Avatar name={user.name} size="sm" />
+            <button onClick={onSignOut} title="Sign out" aria-label="Sign out" style={{ display: "flex", border: "none", background: "transparent", cursor: "pointer", color: "var(--ink-400)", padding: 2 }}><Icon name="logout" size={16} /></button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
 
-  // ---- Tasks (single source of truth) ----
-  // type: Financial tasks carry GL info + costs (appear in Budget Planner & COA);
-  // Non-Financial tasks appear in planner + reports progress only.
-  const tasks = [
-    // WEEK 1
-    { id: tid(), name: "Register business & file LLC", desc: "Form the LLC and register the trade name with the state.", type: "Financial", category: "Legal & Registration", priority: "High", est: 250, actual: 235, week: 1, due: due(1), status: "Completed", gl: "6200", vendorType: "State / Registered Agent" },
-    { id: tid(), name: "Research local cleaning competitors", desc: "Map 8–10 local cleaners: pricing, services, reviews.", type: "Non-Financial", category: "Market Research", priority: "High", est: 0, actual: 0, week: 1, due: due(1), status: "Completed" },
-    { id: tid(), name: "Buy cleaning supplies starter kit", desc: "Eco-friendly all-purpose, glass, bathroom, floor cleaners.", type: "Financial", category: "Equipment & Assets", priority: "High", est: 450, actual: 420, week: 1, due: due(1), status: "Completed", gl: "1200", vendorType: "Janitorial Supplier" },
+const btnPrimary = { display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 16px", background: "var(--forest-600)", color: "#fff", border: "none", borderRadius: "var(--radius-md)", font: "600 13.5px var(--font-sans)", cursor: "pointer", transition: "background .13s" };
+const btnGhost = { display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 14px", background: "var(--surface-card)", color: "var(--ink-700)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", font: "600 13.5px var(--font-sans)", cursor: "pointer", transition: "background .13s" };
+const btnOutline = { display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 13px", background: "transparent", color: "var(--navy-700)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-md)", font: "600 12.5px var(--font-sans)", cursor: "pointer" };
 
-    // WEEK 2
-    { id: tid(), name: "General liability insurance", desc: "$1M general liability policy for residential cleaning.", type: "Financial", category: "Legal & Registration", priority: "High", est: 600, actual: 0, week: 2, due: due(2), status: "In Progress", gl: "6100", vendorType: "Insurance Broker" },
-    { id: tid(), name: "Janitorial bond", desc: "Surety bond to reassure clients on theft/damage.", type: "Financial", category: "Legal & Registration", priority: "High", est: 200, actual: 0, week: 2, due: due(2), status: "To Do", gl: "6100", vendorType: "Insurance Broker" },
-    { id: tid(), name: "Business bank account & card processing", desc: "Open a business checking account and set up card payments.", type: "Financial", category: "Office & Operation", priority: "High", est: 30, actual: 0, week: 2, due: due(2), status: "To Do", gl: "6600", vendorType: "Payment Processor", vendor: "Square", vendorWebsite: "https://squareup.com" },
-    { id: tid(), name: "Create brand name & logo", desc: "Finalize FreshNest identity, colors, and logo files.", type: "Non-Financial", category: "Branding Strategy", priority: "Medium", est: 0, actual: 0, week: 2, due: due(2), status: "Completed" },
-
-    // WEEK 3
-    { id: tid(), name: "Commercial vacuum cleaners (x2)", desc: "Two HEPA upright vacuums for the crew.", type: "Financial", category: "Equipment & Assets", priority: "High", est: 800, actual: 0, week: 3, due: due(3), status: "To Do", gl: "1500", vendorType: "Equipment Supplier" },
-    { id: tid(), name: "Cleaning caddies & carts", desc: "Portable caddies and a rolling supply cart.", type: "Financial", category: "Equipment & Assets", priority: "Low", est: 220, actual: 0, week: 3, due: due(3), status: "To Do", gl: "1500", vendorType: "Equipment Supplier" },
-    { id: tid(), name: "Identify target neighborhoods", desc: "Pick 3 zip codes with the right household income & density.", type: "Non-Financial", category: "Customer Research", priority: "Medium", est: 0, actual: 0, week: 3, due: due(3), status: "In Progress" },
-
-    // WEEK 4
-    { id: tid(), name: "Website + online booking", desc: "Build site with instant quote & booking calendar.", type: "Financial", category: "Sales Strategies", priority: "High", est: 900, actual: 880, week: 4, due: due(4), status: "Completed", gl: "6600", vendorType: "Web / Software", vendor: "Squarespace", vendorWebsite: "https://www.squarespace.com" },
-    { id: tid(), name: "Set up Google Business Profile", desc: "Claim and complete the local listing with photos.", type: "Non-Financial", category: "Marketing Strategy", priority: "High", est: 0, actual: 0, week: 4, due: due(4), status: "To Do" },
-
-    // WEEK 5
-    { id: tid(), name: "Service vehicle down payment", desc: "Down payment on a reliable used cargo van.", type: "Financial", category: "Equipment & Assets", priority: "High", est: 2500, actual: 0, week: 5, due: due(5), status: "To Do", gl: "1510", vendorType: "Auto Dealer" },
-    { id: tid(), name: "Scheduling software (annual)", desc: "Crew scheduling, routing, and client reminders.", type: "Financial", category: "Office & Operation", priority: "Medium", est: 360, actual: 0, week: 5, due: due(5), status: "To Do", gl: "6600", vendorType: "Web / Software" },
-
-    // WEEK 6
-    { id: tid(), name: "Vehicle wrap & signage", desc: "Branded van wrap + magnetic door signs.", type: "Financial", category: "Sales Strategies", priority: "Medium", est: 600, actual: 0, week: 6, due: due(6), status: "To Do", gl: "6300", vendorType: "Signage / Print" },
-    { id: tid(), name: "Uniforms & PPE", desc: "Branded shirts, gloves, shoe covers, masks.", type: "Financial", category: "Equipment & Assets", priority: "Low", est: 300, actual: 0, week: 6, due: due(6), status: "To Do", gl: "6000", vendorType: "Apparel Supplier" },
-
-    // WEEK 7
-    { id: tid(), name: "Accounting software setup", desc: "Connect bank, set up the chart of accounts.", type: "Financial", category: "Office & Operation", priority: "Medium", est: 240, actual: 0, week: 7, due: due(7), status: "To Do", gl: "6600", vendorType: "Web / Software", vendor: "QuickBooks", vendorWebsite: "https://quickbooks.intuit.com" },
-    { id: tid(), name: "CRM & client management software", desc: "Track leads, clients, and follow-ups in one place.", type: "Financial", category: "Office & Operation", priority: "Medium", est: 39, actual: 0, week: 7, due: due(7), status: "To Do", gl: "6600", vendorType: "Software Provider", vendor: "Pipedrive", vendorWebsite: "https://www.pipedrive.com" },
-    { id: tid(), name: "Write cleaning checklists & SOPs", desc: "Room-by-room checklists for standard & deep cleans.", type: "Non-Financial", category: "Systems & Operations", priority: "Medium", est: 0, actual: 0, week: 7, due: due(7), status: "To Do" },
-
-    // WEEK 8
-    { id: tid(), name: "Launch intro marketing campaign", desc: "Local mailers + paid social for first-clean discount.", type: "Financial", category: "Sales Strategies", priority: "High", est: 800, actual: 0, week: 8, due: due(8), status: "To Do", gl: "6300", vendorType: "Marketing Agency" },
-    { id: tid(), name: "Email marketing & newsletter tool", desc: "Send promos and recurring-client newsletters.", type: "Financial", category: "Sales Strategies", priority: "Medium", est: 25, actual: 0, week: 8, due: due(8), status: "To Do", gl: "6300", vendorType: "Marketing", vendor: "Mailchimp", vendorWebsite: "https://mailchimp.com" },
-
-    // WEEK 9
-    { id: tid(), name: "Finalize service packages & pricing", desc: "Standard, deep, move-out, and recurring plans.", type: "Non-Financial", category: "Product / Service Development", priority: "High", est: 0, actual: 0, week: 9, due: due(9), status: "To Do" },
-    { id: tid(), name: "Microfiber cloths & mops (bulk)", desc: "Color-coded microfiber and flat-mop refills.", type: "Financial", category: "Equipment & Assets", priority: "Medium", est: 180, actual: 0, week: 9, due: due(9), status: "To Do", gl: "1200", vendorType: "Janitorial Supplier" },
-
-    // WEEK 10
-    { id: tid(), name: "Draft client service agreement", desc: "Terms, cancellation policy, and satisfaction guarantee.", type: "Non-Financial", category: "Legal & Compliance", priority: "Medium", est: 0, actual: 0, week: 10, due: due(10), status: "To Do" },
-    { id: tid(), name: "Plan hiring & first cleaner", desc: "Job post, interview script, and onboarding checklist.", type: "Non-Financial", category: "Human Resource Strategy", priority: "Medium", est: 0, actual: 0, week: 10, due: due(10), status: "To Do" },
-
-    // WEEK 11
-    { id: tid(), name: "Soft launch with friends & family", desc: "5 discounted cleans to test the workflow and gather reviews.", type: "Non-Financial", category: "Launch Strategy", priority: "High", est: 0, actual: 0, week: 11, due: due(11), status: "To Do" },
-
-    // WEEK 12
-    { id: tid(), name: "Grand opening promotion", desc: "Announce launch, referral program, and first-month offer.", type: "Non-Financial", category: "Growth Strategy", priority: "High", est: 0, actual: 0, week: 12, due: due(12), status: "To Do" },
-  ];
-
-  // ---- Vendors / RunBook (created from completed financial tasks) ----
-  const vendors = [
-    {
-      id: "v1", taskName: "Register business & file LLC", vendorName: "Arizona Corporation Commission",
-      category: "Professional Services", status: "Active",
-      contact: "Online Filing", phone: "(602) 542-3026", email: "support@azcc.gov", website: "azcc.gov",
-      service: "LLC formation & trade name", contractStart: "2026-06-09", renewal: "2027-06-09",
-      lastOrder: "2026-06-09", nextOrder: "2027-06-09",
-      terms: "Due Upon Receipt", cost: 235, rating: 4, gl: "6200", notes: "Filed online, approved in 3 days.",
-    },
-    {
-      id: "v2", taskName: "Buy cleaning supplies starter kit", vendorName: "GreenLeaf Janitorial Supply",
-      category: "Supplier", status: "Active",
-      contact: "Marcus Ortiz", phone: "(602) 555-7781", email: "orders@greenleafsupply.com", website: "greenleafsupply.com",
-      service: "Eco-friendly cleaning supplies", contractStart: "2026-06-10", renewal: "—",
-      lastOrder: "2026-06-22", nextOrder: "2026-07-06",
-      terms: "Net 15", cost: 420, rating: 5, gl: "1200", notes: "Great bulk pricing, fast local delivery.",
-    },
-    {
-      id: "v3", taskName: "Website + online booking", vendorName: "BrightSite Studio",
-      category: "Technology Provider", status: "Active",
-      contact: "Priya Nair", phone: "(480) 555-2210", email: "hello@brightsite.studio", website: "brightsite.studio",
-      service: "Website + booking integration", contractStart: "2026-06-29", renewal: "2026-07-12",
-      lastOrder: "2026-06-29", nextOrder: "—",
-      terms: "Net 30", cost: 880, rating: 4, gl: "6600", notes: "Booking calendar synced to scheduling app.",
-    },
-  ];
-
-  // ---- helpers ----
-  const fmt = (n) =>
-    "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmt0 = (n) => "$" + Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
-
-  // category color palette (stable mapping)
-  const catColors = {
-    "Equipment & Assets": "#246049",
-    "Legal & Registration": "#1B344F",
-    "Sales Strategies": "#C8962E",
-    "Office & Operation": "#34597A",
-    "Financial Planning": "#2F7558",
-    "Human Resource Strategy": "#A8392B",
-    "Location & Infrastructure": "#946312",
-    "Contracts": "#647281",
-  };
-  const palette = ["#1B344F", "#246049", "#C8962E", "#34597A", "#A8392B", "#2F7558", "#B07D1E", "#647281", "#244463"];
-
-  // ---- Industry -> Business Type taxonomy (from list of industries.xlsx) ----
-  const industries = {"Automotive Services":["Auto Detailing","Car Washes","Mobile Detailing","Vehicle Appearance Services"],"Commerce Industry":["Creative / Media","Online Services & Digital Commerce"],"Creative Services":["Photography & Videography","Graphic Design & Content Creation"],"E-Commerce Business Models":["Dropshipping","Print-on-Demand","Marketplace Platforms","Affiliate Commerce","Digital Products","Social Commerce","Subscription Box Businesses"],"Educational & Tutoring Services":["Educational Consulting","Music Instruction","Language Instruction"],"Food & Hospitality Industry":["Bar / Adult Beverage","Coffee Shop","Food Truck","Franchise Business","Restaurant — Food & Beverage","Restaurant — Food Only","Personal Chef"],"Healthcare Industry":["Chiropractic Clinics","Dental Practices","Fitness Gyms & Studios","Health & Wellness","Medical Practices","Personal Trainer"],"Home Service Industry":["Cleaning Companies","Landscaping Business","Auto Repair Shops","Construction Companies","Electrical Contracting","HVAC Companies","Plumbing Companies"],"Manufacturing & Industrial":["Logistics & Trucking","Manufacturing Companies"],"Personal Care & Grooming":["Barber Shops","Estheticians","Hair Salons","Massage Therapists","Nail Salons","Spas"],"Pet Care Services":["Pet Sitting","Pet Grooming","Dog Walking"],"Product-Based Categories":["Beauty & Cosmetics","Fine Jewelry & Accessories","Food & Beverage","Electronics","Home Goods & Furniture","Toys & Games","Apparel & Fashion","Health & Wellness Products","Pet Products","Sporting Goods"],"Professional Services":["Accounting Firm","Consulting Services","Insurance Agencies","Law Firms","Real Estate Agent","Real Estate Brokerages"],"Retail Categories":["Retail Store","Wholesale Distribution","Direct-to-Consumer (DTC)","Brick-and-Mortar Retail","Convenience Retail","Franchise Retail","Specialty Retail"],"Technology & Digital":["Amazon FBA Business","IT Services / MSP","Marketing Agency","Technology / SaaS","Shopify Store","Etsy Shop"]};
-
-  // ---- Stage-tailored non-financial tasks (Business Stage → operational tasks) ----
-  const stageTasks = {
-    "Idea / Planning": [
-      { name: "Validate the problem with 5 customer interviews", category: "Customer Research", priority: "High", week: 1, desc: "Confirm a real, painful problem before you build." },
-      { name: "Research local competitors & pricing", category: "Market Research", priority: "High", week: 1, desc: "Map 8–10 competitors: pricing, services, reviews." },
-      { name: "Write your mission & vision", category: "Entrepreneur Mindset", priority: "Medium", week: 2, desc: "Anchor every decision with a clear purpose." },
-      { name: "Define your core service packages", category: "Product / Service Development", priority: "High", week: 2, desc: "What you sell, to whom, at what price." },
-      { name: "Choose a business name & check availability", category: "Branding Strategy", priority: "Medium", week: 3, desc: "Name, domain, and trademark check." },
-      { name: "Draft a one-page business plan", category: "Financial Planning", priority: "Medium", week: 3, desc: "Goals, costs, and revenue model on a page." },
-      { name: "Decide your legal structure", category: "Legal & Compliance", priority: "High", week: 4, desc: "LLC, sole prop, or corp — pick and file." },
-    ],
-    "Pre-Revenue": [
-      { name: "Finalize brand identity & logo", category: "Branding Strategy", priority: "High", week: 2, desc: "Colors, logo, and voice locked in." },
-      { name: "Build website + booking/contact", category: "Marketing Strategy", priority: "High", week: 3, desc: "A site that turns visitors into leads." },
-      { name: "Set up Google Business Profile", category: "Marketing Strategy", priority: "High", week: 4, desc: "Claim and complete your local listing." },
-      { name: "Create service checklists & SOPs", category: "Systems & Operations", priority: "Medium", week: 5, desc: "Repeatable steps for consistent delivery." },
-      { name: "Line up your first 3 pilot customers", category: "Sales Strategies", priority: "High", week: 6, desc: "Discounted trials to prove the model." },
-      { name: "Set pricing & payment terms", category: "Product / Service Development", priority: "Medium", week: 4, desc: "Rates, deposits, and cancellation policy." },
-    ],
-    "Just Launched": [
-      { name: "Collect first reviews & testimonials", category: "Marketing Strategy", priority: "High", week: 2, desc: "Social proof from your earliest customers." },
-      { name: "Set up a CRM & follow-up system", category: "Systems & Operations", priority: "Medium", week: 3, desc: "Never let a lead slip through." },
-      { name: "Launch a referral program", category: "Growth Strategy", priority: "High", week: 4, desc: "Turn happy customers into your sales team." },
-      { name: "Track weekly cash flow", category: "Financial Planning", priority: "High", week: 2, desc: "Know your runway every single week." },
-      { name: "Refine your service from feedback", category: "Product / Service Development", priority: "Medium", week: 5, desc: "Tighten what customers actually value." },
-      { name: "Plan your first hire", category: "Human Resource Strategy", priority: "Medium", week: 6, desc: "Job description and onboarding checklist." },
-    ],
-    "Operating": [
-      { name: "Document & systematize operations", category: "Systems & Operations", priority: "High", week: 2, desc: "Make the business run without you." },
-      { name: "Hire & train team members", category: "Human Resource Strategy", priority: "High", week: 3, desc: "Recruit, onboard, and train to standard." },
-      { name: "Build a 12-month growth plan", category: "Growth Strategy", priority: "High", week: 4, desc: "Targets, channels, and milestones." },
-      { name: "Negotiate better vendor terms", category: "Sales Strategies", priority: "Medium", week: 5, desc: "Improve margins with volume pricing." },
-      { name: "Add a new revenue stream", category: "Product / Service Development", priority: "Medium", week: 6, desc: "Upsell, subscription, or new service line." },
-      { name: "Review financials & tax strategy", category: "Financial Planning", priority: "High", week: 7, desc: "Quarterly review with your advisor." },
-    ],
-  };
-
-  // ---- Flat business-type list + reverse map (pick type -> industry auto-fills) ----
-  const allBusinessTypes = [];
-  const typeToIndustry = {};
-  Object.entries(industries).forEach(([ind, types]) => types.forEach((t) => { if (!typeToIndustry[t]) { typeToIndustry[t] = ind; allBusinessTypes.push(t); } }));
-  allBusinessTypes.sort();
-
-  // ---- Affirmation of the day (daily SMS) ----
-  function affirmationOfDay(offset) {
-    const list = window.StartWiseAffirmations || [];
-    if (!list.length) return { title: "Daily", text: "" };
-    const day = Math.floor(Date.now() / 86400000) + (offset || 0);
-    return list[((day % list.length) + list.length) % list.length];
-  }
-
-  window.StartWiseData = {
-    business, funding, accountTypes, coa, tasks, vendors, industries, stageTasks,
-    allBusinessTypes, typeToIndustry, affirmationOfDay,
-    PRIORITIES, STATUSES, weekThemes, fmt, fmt0, catColors, palette, due,
-  };
-})();
+Object.assign(window, { Icon, StatusPill, PriorityPill, TypeTag, Callout, Panel, Sidebar, TopBar, btnPrimary, btnGhost, btnOutline, iconBtnTop, NAV, useIsMobile });

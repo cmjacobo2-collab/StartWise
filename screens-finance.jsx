@@ -1,437 +1,313 @@
-/* StartWise — Business Info + Knowledge Center + Legal */
-const { useState: useS3 } = React;
-const SW3 = window.StartWiseData;
-const DSx = window.AcrossTheTableDesignSystem_520822;
+/* StartWise — Products & Services, Pricing Simulator, AI Business Assistant */
+const { useState: useF, useMemo: useFM } = React;
+const SWf = window.StartWiseData;
+const BIZ = window.StartWiseBiz;
 
-/* =========================================================== LEGAL DOCS ===== */
-const LEGAL_DOCS = [
-  {
-    id: "terms", title: "Terms of Service", icon: "file", updated: "June 1, 2026",
-    intro: "These terms govern your use of StartWise, a product of Across the Table Small Business Consulting. By creating an account you agree to them.",
-    sections: [
-      ["1. Acceptance of these terms", "By accessing or using StartWise you agree to these Terms of Service. If you do not agree, do not use the service."],
-      ["2. Your account & one-business license", "Each StartWise account is tied to one business — your owner name, business name, industry, and business type. After 48 hours your business type and Chart of Accounts lock to your license. Running a second business requires a separate license."],
-      ["3. Acceptable use", "You agree to use StartWise only for lawful purposes and not to misuse, copy, resell, or reverse-engineer the service. You are responsible for activity under your account and for keeping your access code secure."],
-      ["4. Your content & data", "You own the data you enter — tasks, budgets, vendors, and notes. You grant us a limited license to store and process it to provide the service. You may export your data at any time."],
-      ["5. AI features", "StartWise connects to your own AI account to generate your Chart of Accounts, expenses, and prompts. We do not pay for or resell AI usage; your prompts and history are governed by your AI provider's terms."],
-      ["6. No financial or legal advice", "StartWise is a planning tool, not a substitute for a licensed accountant, attorney, or financial advisor. Verify filings, taxes, and legal decisions with a qualified professional."],
-      ["7. Limitation of liability", "StartWise is provided \u201Cas is.\u201D To the fullest extent permitted by law, Across the Table is not liable for indirect or consequential damages arising from your use of the service."],
-      ["8. Changes & contact", "We may update these terms and will note the effective date above. Questions? Email info@acrossthetable.biz."],
-    ],
-  },
-  {
-    id: "privacy", title: "Privacy Policy", icon: "shield", updated: "June 1, 2026",
-    intro: "This policy explains what we collect, how we use it, and the choices you have. We keep it plain — no surprises.",
-    sections: [
-      ["1. What we collect", "Account details (name, business name, email, phone), the business data you enter, and basic usage information needed to run the app."],
-      ["2. How we use it", "To provide your 12-week plan, dashboard, budgets, reports, and reminders — and to support you. We do not sell your personal information."],
-      ["3. AI & third parties", "When you use AI features, your prompts are sent to your own connected AI provider. Their handling of that data is governed by their policy, not ours."],
-      ["4. SMS reminders", "If you opt in, we send daily SMS reminders with an affirmation. Standard message rates may apply. You can turn reminders off anytime in Business Info."],
-      ["5. Security", "We use reasonable safeguards to protect your data. No system is perfectly secure, so keep your access code private."],
-      ["6. Your rights", "You can view, edit, export, or request deletion of your data. Email info@acrossthetable.biz to make a request."],
-      ["7. Retention", "We retain your data while your account is active and for a reasonable period afterward, unless you ask us to delete it sooner."],
-    ],
-  },
-  {
-    id: "license", title: "Software License Agreement", icon: "scale", updated: "June 1, 2026",
-    intro: "This agreement covers your right to use the StartWise software for a single business.",
-    sections: [
-      ["1. Grant of license", "Across the Table grants you a limited, non-exclusive, non-transferable license to use StartWise for one business associated with your account."],
-      ["2. Restrictions", "You may not sublicense, resell, share access codes, or use one license across multiple businesses. Additional businesses require additional licenses."],
-      ["3. Ownership", "StartWise, its content libraries (templates, prompts, blueprint series), and its design remain the property of Across the Table."],
-      ["4. Term & termination", "This license lasts while your subscription is active. We may suspend or terminate it for breach of these terms; you may cancel at any time."],
-      ["5. Updates", "We may release updates and improvements. Continued use after an update means you accept the updated software."],
-      ["6. Warranty disclaimer", "The software is provided \u201Cas is\u201D without warranties of any kind, express or implied, including fitness for a particular purpose."],
-      ["7. Governing law & contact", "This agreement is governed by the laws of the State of Arizona. Questions? Email info@acrossthetable.biz."],
-    ],
-  },
-];
-window.LEGAL_DOCS = LEGAL_DOCS;
+/* =========================================================== AI BUSINESS ASSISTANT ===== */
+/* Reusable across finance screens. Uses the user's own AI when available; otherwise copy-to-clipboard. */
+function AiAssistant({ icon = "sparkle", title, subtitle, prompt, context }) {
+  const [open, setOpen] = useF(false);
+  const [loading, setLoading] = useF(false);
+  const [answer, setAnswer] = useF("");
+  const [copied, setCopied] = useF(false);
+  const full = context ? prompt + "\n\nMy data:\n" + context : prompt;
 
-function LegalModal({ doc, onClose }) {
+  const ask = async () => {
+    setOpen(true); setAnswer(""); setLoading(true);
+    try {
+      if (window.claude && window.claude.complete) {
+        const raw = await window.claude.complete(full + "\n\nReply in plain English for a first-time business owner. Use short paragraphs and a few bullet points. No markdown headers.");
+        setAnswer(raw.trim());
+      } else {
+        await new Promise((r) => setTimeout(r, 200));
+        setAnswer("Connect your own AI account to get a tailored analysis here. For now, use \u201CCopy prompt\u201D and paste it into your AI \u2014 your full data summary is included.");
+      }
+    } catch (e) {
+      setAnswer("Couldn't reach your AI just now. Use \u201CCopy prompt\u201D and paste it into your own AI account instead.");
+    }
+    setLoading(false);
+  };
+  const copy = () => { try { navigator.clipboard && navigator.clipboard.writeText(full); } catch (e) {} setCopied(true); setTimeout(() => setCopied(false), 1600); };
+
   return (
-    <div onClick={onClose} style={modalOverlay}>
-      <div onClick={(e) => e.stopPropagation()} style={{ ...modalCard, maxWidth: 680 }}>
-        <div style={modalHead}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: "var(--navy-050)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name={doc.icon} size={19} color="var(--navy-700)" /></div>
-            <div>
-              <h2 style={{ font: "700 18px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>{doc.title}</h2>
-              <div style={{ fontSize: 11.5, color: "var(--ink-400)" }}>Last updated {doc.updated}</div>
-            </div>
-          </div>
-          <button onClick={onClose} style={iconX}><Icon name="x" size={20} /></button>
+    <div style={{ background: "var(--navy-900)", borderRadius: "var(--radius-lg)", padding: "18px 20px", color: "#fff" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+        <div style={{ width: 40, height: 40, borderRadius: 11, background: "rgba(200,150,46,0.18)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name={icon} size={20} color="var(--gold-400)" /></div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.14em", color: "var(--gold-400)" }}>AI BUSINESS ASSISTANT</div>
+          <div style={{ font: "700 16px var(--font-display)", marginTop: 3 }}>{title}</div>
+          <div style={{ fontSize: 12.5, color: "var(--text-on-dark-muted)", marginTop: 1 }}>{subtitle}</div>
         </div>
-        <div style={{ padding: 24 }}>
-          <p style={{ fontSize: 13.5, color: "var(--ink-600)", margin: "0 0 18px", lineHeight: 1.6 }}>{doc.intro}</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {doc.sections.map(([h, body]) => (
-              <div key={h}>
-                <div style={{ font: "700 13.5px var(--font-display)", color: "var(--ink-900)", marginBottom: 4 }}>{h}</div>
-                <div style={{ fontSize: 13, color: "var(--ink-600)", lineHeight: 1.6 }}>{body}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div style={modalFoot}>
-          <span style={{ fontSize: 12, color: "var(--ink-400)" }}>Across the Table · acrossthetable.biz</span>
-          <button onClick={onClose} style={btnPrimary}>Close</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={copy} style={{ ...btnGhost, background: "rgba(255,255,255,0.08)", color: "#fff", border: "1px solid rgba(255,255,255,0.18)" }}><Icon name={copied ? "check" : "file"} size={15} /> {copied ? "Copied" : "Copy prompt"}</button>
+          <button onClick={ask} style={{ ...btnPrimary, background: "var(--gold-500)", color: "var(--navy-900)" }}><Icon name="sparkle" size={15} /> Analyze with my AI</button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function Legal({ business, setBusiness }) {
-  const [doc, setDoc] = useS3(null);
-  const accepted = !!business.termsAccepted;
-  const when = business.termsAcceptedAt ? new Date(business.termsAcceptedAt) : null;
-  const accept = () => setBusiness({ ...business, termsAccepted: true, termsAcceptedAt: new Date().toISOString() });
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Callout icon="shield" title="Your legal documents, always one click away">
-        Review the Terms of Service, Privacy Policy, and Software License Agreement anytime. Your acceptance is recorded with a date and time stamp below.
-      </Callout>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-        {LEGAL_DOCS.map((d) => (
-          <button key={d.id} onClick={() => setDoc(d)} style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: 12, padding: 20, background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", cursor: "pointer" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: "var(--navy-050)", display: "grid", placeItems: "center" }}><Icon name={d.icon} size={22} color="var(--navy-700)" /></div>
-            <div>
-              <div style={{ font: "700 16px var(--font-display)", color: "var(--ink-900)" }}>{d.title}</div>
-              <div style={{ fontSize: 12, color: "var(--ink-400)", marginTop: 2 }}>Updated {d.updated} · {d.sections.length} sections</div>
-            </div>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--navy-600)", fontWeight: 600 }}>Read document <Icon name="arrowRight" size={14} /></span>
-          </button>
-        ))}
-      </div>
-
-      <Panel title="Acceptance record" subtitle="Your agreement to the documents above is stored here">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 999, background: accepted ? "var(--forest-050)" : "var(--gold-050)", display: "grid", placeItems: "center" }}><Icon name={accepted ? "check" : "bell"} size={20} color={accepted ? "var(--forest-600)" : "var(--gold-700)"} /></div>
-            <div>
-              <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--ink-900)" }}>{accepted ? "Documents accepted" : "Acceptance pending"}</div>
-              <div style={{ fontSize: 12.5, color: "var(--ink-500)" }}>{accepted && when ? `Accepted on ${when.toLocaleDateString()} at ${when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Review and accept to record your agreement."}</div>
-            </div>
-          </div>
-          <button onClick={accept} style={accepted ? btnGhost : btnPrimary}><Icon name="check" size={16} /> {accepted ? "Re-accept current versions" : "Accept all documents"}</button>
-        </div>
-      </Panel>
-
-      {doc && <LegalModal doc={doc} onClose={() => setDoc(null)} />}
-    </div>
-  );
-}
-
-/* =========================================================== BUSINESS INFO ===== */
-function BusinessInfo({ business, setBusiness, funding, setFunding, totalBudget, actualSpend, hoursLeft, coa, onRebuild }) {
-  const { Input, Select, Switch } = DSx;
-  const [invite, setInvite] = useS3("");
-  const [rebuild, setRebuild] = useS3(false);
-  const typeLocked = hoursLeft <= 0;
-  const hrs = Math.floor(hoursLeft);
-  const set = (patch) => setBusiness({ ...business, ...patch });
-  const setF = (i, patch) => setFunding(funding.map((f, j) => (j === i ? { ...f, ...patch } : f)));
-  const total = funding.filter((f) => f.on).reduce((s, f) => s + (+f.amount || 0), 0);
-  const remaining = total - actualSpend;
-  const pct = total ? Math.round((actualSpend / total) * 100) : 0;
-  const monthly = 4200;
-  const runway = monthly ? Math.floor(remaining / monthly) : 0;
-
-  const LockLabel = ({ children, on }) => (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>{children}{on && <Icon name="lock" size={12} color="var(--ink-400)" />}</span>
-  );
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 16, alignItems: "start" }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <Panel title="Business profile" right={!typeLocked ? <button onClick={() => setRebuild(true)} style={{ ...btnOutline, fontSize: 12.5 }}><Icon name="sparkle" size={14} /> Change type & rebuild COA</button> : null}>
-          {!typeLocked ? (
-            <div style={{ marginBottom: 16 }}><Callout icon="lock" title={`Business type & Chart of Accounts editable for ${hrs} more hour${hrs === 1 ? "" : "s"}`}>You can still switch your business type and rebuild your Chart of Accounts. After 48 hours these lock to your license so one license can't be reused across businesses. Funding and launch date stay editable anytime.</Callout></div>
+      {open && (
+        <div style={{ marginTop: 16, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "var(--radius-md)", padding: "14px 16px" }}>
+          {loading ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--text-on-dark-muted)" }}><Spinner /> Analyzing your numbers…</div>
           ) : (
-            <div style={{ marginBottom: 16 }}><Callout icon="lock" title="Business type & Chart of Accounts are locked">Your 48-hour window has closed. Business name, funding, and launch date stay editable — but your business type and COA are locked to your license.</Callout></div>
+            <div style={{ fontSize: 13.5, color: "#EFEAE0", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{answer}</div>
           )}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <Input label="Owner name" value={business.fullName} onChange={(e) => set({ fullName: e.target.value })} />
-              <Input label="Business name" value={business.businessName} onChange={(e) => set({ businessName: e.target.value })} />
-              <div style={fieldWrap}><label style={fieldLab}><LockLabel on={typeLocked}>Industry</LockLabel></label><select disabled={typeLocked} value={business.industry} onChange={(e) => set({ industry: e.target.value, businessType: (SW3.industries[e.target.value] || [""])[0] })} style={inp(typeLocked)}>{Object.keys(SW3.industries).map((x) => <option key={x}>{x}</option>)}</select></div>
-              <div style={fieldWrap}><label style={fieldLab}><LockLabel on={typeLocked}>Business type</LockLabel></label><select disabled={typeLocked} value={business.businessType} onChange={(e) => set({ businessType: e.target.value })} style={inp(typeLocked)}>{(SW3.industries[business.industry] || [business.businessType]).map((x) => <option key={x}>{x}</option>)}</select></div>
-              <Input label="Email" value={business.email} onChange={(e) => set({ email: e.target.value })} />
-              <Input label="Phone" value={business.phone} onChange={(e) => set({ phone: e.target.value })} />
-              <Input label="Target launch date" type="date" value={business.launchDate} onChange={(e) => set({ launchDate: e.target.value })} hint="Editable anytime — your plan counts down from here." />
-              <div style={{ paddingTop: 22 }}><Switch label="SMS weekly reminders" checked={business.smsReminders} onChange={(e) => set({ smsReminders: e.target.checked })} /></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================== PRODUCT EDITOR ===== */
+function ProductEditor({ product, onSave, onClose, onDelete }) {
+  const { Input, Select } = window.AcrossTheTableDesignSystem_520822;
+  const isNew = !product.id;
+  const [p, setP] = useF({ category: BIZ.productCategories[0], name: "", sku: "", description: "", type: "Service", vendor: "", cost: 0, retail: 0, wholesale: 0, stock: null, minStock: null, reorder: null, channel: "Website", monthlyQty: 0, launch: SWf.business.launchDate, status: "Active", notes: "", ...product });
+  const set = (patch) => setP({ ...p, ...patch });
+  const physical = p.type === "Physical Product";
+  const profit = BIZ.profitPerUnit(p), margin = BIZ.marginPct(p), mRev = BIZ.monthlyRevenue(p);
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(14,27,44,0.45)", zIndex: 60, display: "grid", placeItems: "center", padding: 20 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto", background: "#fff", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card-hover)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--border-default)", position: "sticky", top: 0, background: "#fff", zIndex: 1 }}>
+          <h2 style={{ font: "700 19px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>{isNew ? "Add a product or service" : "Edit product or service"}</h2>
+          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--ink-400)" }}><Icon name="x" size={20} /></button>
+        </div>
+        <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <Input label="Product / service name" value={p.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Deep clean" />
+            <Input label="SKU / ID" value={p.sku} onChange={(e) => set({ sku: e.target.value })} hint="Your internal product code" />
+            <Select label="Category" value={p.category} onChange={(e) => set({ category: e.target.value })}>{BIZ.productCategories.map((c) => <option key={c}>{c}</option>)}</Select>
+            <Select label="Product type" value={p.type} onChange={(e) => set({ type: e.target.value })}>{BIZ.productTypes.map((c) => <option key={c}>{c}</option>)}</Select>
+          </div>
+          <Input label="Description" multiline value={p.description} onChange={(e) => set({ description: e.target.value })} />
+          <div style={{ background: "var(--cream-50)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)" }}>PRICING — WE CALCULATE PROFIT FOR YOU</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+              <Input label="Cost per unit ($)" type="number" value={p.cost} onChange={(e) => set({ cost: +e.target.value })} hint="What it costs to deliver one" />
+              <Input label="Retail price ($)" type="number" value={p.retail} onChange={(e) => set({ retail: +e.target.value })} hint="Price to customers" />
+              <Input label="Wholesale price ($)" type="number" value={p.wholesale} onChange={(e) => set({ wholesale: +e.target.value })} hint="Bulk / reseller price" />
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {[["Profit per unit", SWf.fmt(profit), profit >= 0 ? "var(--forest-600)" : "var(--red-600)"], ["Profit margin", margin.toFixed(0) + "%", margin >= 40 ? "var(--forest-600)" : margin >= 20 ? "var(--gold-700)" : "var(--red-600)"], ["Monthly revenue", SWf.fmt0(mRev), "var(--navy-700)"]].map(([k, v, c]) => (
+                <div key={k} style={{ flex: 1, minWidth: 120, background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: "10px 12px" }}>
+                  <div style={{ font: "600 9px var(--font-mono)", letterSpacing: "0.08em", color: "var(--ink-400)" }}>{k.toUpperCase()}</div>
+                  <div style={{ font: "800 18px var(--font-display)", color: c, marginTop: 3 }}>{v}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </Panel>
-        {rebuild && <RebuildModal business={business} coa={coa} onClose={() => setRebuild(false)} onApply={(plan, patch) => { onRebuild(plan, patch); setRebuild(false); }} />}
-
-        <Panel title="Your account">
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {[["Account number", business.accountNumber], ["Email", business.email], ["Role", "Admin"], ["Member since", new Date(business.dateJoined).toLocaleDateString()], ["Subscription", business.membership], ["License", "1 business · 1 industry"]].map(([k, v], i) => (
-              <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "11px 0", borderTop: i ? "1px solid var(--border-subtle)" : "none" }}>
-                <span style={{ fontSize: 13, color: "var(--ink-500)" }}>{k}</span>
-                <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink-900)", fontFamily: k === "Account number" ? "var(--font-mono)" : "inherit" }}>{v}</span>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <Select label="Sales channel" value={p.channel} onChange={(e) => set({ channel: e.target.value })}>{BIZ.salesChannels.map((c) => <option key={c}>{c}</option>)}</Select>
+            <Input label="Monthly sales quantity" type="number" value={p.monthlyQty} onChange={(e) => set({ monthlyQty: +e.target.value })} hint="Units sold per month" />
+            <Input label="Primary vendor" value={p.vendor} onChange={(e) => set({ vendor: e.target.value })} />
+            <Select label="Status" value={p.status} onChange={(e) => set({ status: e.target.value })}>{BIZ.productStatuses.map((c) => <option key={c}>{c}</option>)}</Select>
+          </div>
+          {physical && (
+            <div style={{ background: "var(--cream-50)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)" }}>INVENTORY (PHYSICAL PRODUCTS)</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+                <Input label="Inventory stock" type="number" value={p.stock ?? 0} onChange={(e) => set({ stock: +e.target.value })} />
+                <Input label="Minimum stock" type="number" value={p.minStock ?? 0} onChange={(e) => set({ minStock: +e.target.value })} />
+                <Input label="Reorder quantity" type="number" value={p.reorder ?? 0} onChange={(e) => set({ reorder: +e.target.value })} />
               </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 18, padding: 16, background: "var(--cream-50)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)" }}>
-            <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)", marginBottom: 10 }}>INVITE A TEAM MEMBER (ADMIN ONLY)</div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input value={invite} onChange={(e) => setInvite(e.target.value)} placeholder="teammate@email.com" style={{ flex: 1, padding: "9px 12px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", fontSize: 13.5 }} />
-              <button style={btnPrimary}><Icon name="plus" size={15} /> Send invite</button>
             </div>
-            <div style={{ fontSize: 12, color: "var(--ink-400)", marginTop: 8 }}>Team members can view, edit tasks, and add notes — but can't delete tasks or change the subscription.</div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <Input label="Launch date" type="date" value={p.launch} onChange={(e) => set({ launch: e.target.value })} />
+            <Input label="Notes" value={p.notes} onChange={(e) => set({ notes: e.target.value })} />
           </div>
-        </Panel>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", borderTop: "1px solid var(--border-default)", position: "sticky", bottom: 0, background: "#fff" }}>
+          <div>{!isNew && onDelete && <button onClick={() => onDelete(p.id)} style={{ ...btnGhost, color: "var(--red-600)", border: "1px solid var(--red-100)" }}><Icon name="trash" size={15} /> Delete</button>}</div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={onClose} style={btnGhost}>Cancel</button>
+            <button onClick={() => p.name.trim() && onSave({ ...p, id: p.id || "p" + Date.now() })} style={btnPrimary}><Icon name="check" size={16} /> {isNew ? "Add product" : "Save changes"}</button>
+          </div>
+        </div>
       </div>
-
-      <Panel title="Funding & budget" subtitle="Check every source you're using and set an amount">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {funding.map((f, i) => (
-            <label key={f.source} style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 12px", border: `1px solid ${f.on ? "var(--forest-500)" : "var(--border-default)"}`, background: f.on ? "var(--forest-050)" : "#fff", borderRadius: "var(--radius-md)", cursor: "pointer", transition: "all .13s" }}>
-              <input type="checkbox" checked={f.on} onChange={(e) => setF(i, { on: e.target.checked })} style={{ accentColor: "var(--forest-600)", width: 15, height: 15 }} />
-              <span style={{ flex: 1, fontSize: 12.5, color: "var(--ink-800)", fontWeight: 500 }}>{f.source}</span>
-              {f.on && <span style={{ display: "flex", alignItems: "center", gap: 2 }}><span style={{ color: "var(--ink-400)", fontSize: 12 }}>$</span><input type="number" value={f.amount} onChange={(e) => setF(i, { amount: e.target.value })} style={{ width: 66, padding: "4px 6px", border: "1px solid var(--border-default)", borderRadius: 6, fontSize: 12.5, fontFamily: "var(--font-mono)" }} /></span>}
-            </label>
-          ))}
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 16px", background: "var(--forest-050)", border: "1px solid var(--forest-100)", borderRadius: "var(--radius-md)", marginTop: 14 }}>
-          <span style={{ fontSize: 13, color: "var(--forest-700)", fontWeight: 600 }}>Total startup funding</span>
-          <span style={{ font: "800 22px var(--font-display)", color: "var(--forest-700)" }}>{SW3.fmt0(total)}</span>
-        </div>
-        <div style={{ marginTop: 16, display: "flex", flexDirection: "column" }}>
-          {[["Total funding", SW3.fmt(total), "var(--ink-900)"], ["Actual spend to date", SW3.fmt(actualSpend), "var(--gold-700)"], ["Remaining budget", SW3.fmt(remaining), "var(--forest-600)"], ["% budget used", pct + "%", "var(--ink-900)"], ["Estimated runway", runway + " months", "var(--ink-900)"]].map(([k, v, c], i) => (
-            <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "11px 0", borderTop: i ? "1px solid var(--border-subtle)" : "none" }}>
-              <span style={{ fontSize: 13, color: "var(--ink-500)" }}>{k}</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: c, fontFamily: "var(--font-mono)" }}>{v}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 8 }}><ProgressBar value={pct} color={pct > 90 ? "var(--red-600)" : "var(--forest-600)"} /></div>
-      </Panel>
     </div>
   );
 }
 
-const fieldWrap = { display: "flex", flexDirection: "column", gap: 5 };
-const fieldLab = { font: "600 12px var(--font-sans)", color: "var(--ink-700)" };
-const inp = (locked) => ({ padding: "10px 12px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", fontSize: 14, background: locked ? "var(--cream-100)" : "#fff", color: locked ? "var(--ink-500)" : "var(--ink-900)", cursor: locked ? "not-allowed" : "auto", fontFamily: "var(--font-sans)" });
+/* =========================================================== PRICING SIMULATOR ===== */
+function PricingSimulator({ products }) {
+  const sellable = products.filter(BIZ.isSellable);
+  const [id, setId] = useF((sellable[0] || products[0] || {}).id);
+  const base = products.find((p) => p.id === id) || products[0];
+  const [newPrice, setNewPrice] = useF(base ? base.retail : 0);
+  React.useEffect(() => { if (base) setNewPrice(base.retail); }, [id]);
+  if (!base) return null;
 
-/* =========================================================== KNOWLEDGE CENTER ===== */
-const HOWTO = [
-  { icon: "dashboard", t: "Dashboard", d: "Read your launch progress and spend at a glance — every number updates live as you work." },
-  { icon: "calendar", t: "12-Week Plan", d: "Work week by week. Check off tasks, drag them between weeks, and watch your progress climb." },
-  { icon: "dollar", t: "Budget Planner", d: "Every financial task is an expense. Enter what you actually paid to track real vs. estimated." },
-  { icon: "runbook", t: "RunBook", d: "Completed financial tasks become vendor records you can rate, revisit, and export to PDF." },
-  { icon: "chart", t: "Reports", d: "See budget health by category and how your operational tasks are tracking." },
-  { icon: "ledger", t: "Chart of Accounts", d: "Your GL structure, pre-built for your industry — export straight to your accounting tool." },
-];
-const KB = (window.StartWiseKnowledge || { toolkit: [], blueprint: [] });
+  const qty = +base.monthlyQty || 0, cost = +base.cost || 0;
+  const cur = { price: base.retail, rev: base.retail * qty, perSale: base.retail - cost, mProfit: (base.retail - cost) * qty, margin: base.retail ? ((base.retail - cost) / base.retail) * 100 : 0 };
+  const proj = { price: newPrice, rev: newPrice * qty, perSale: newPrice - cost, mProfit: (newPrice - cost) * qty, margin: newPrice ? ((newPrice - cost) / newPrice) * 100 : 0 };
+  const breakeven = (newPrice - cost) > 0 ? Math.ceil((BIZ.opexLines.reduce((s, l) => s + l.amount, 0)) / (newPrice - cost)) : "—";
+  const sel = { padding: "8px 12px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", fontSize: 13, background: "#fff", color: "var(--ink-700)" };
+  const Row = ({ label, a, b, money = true, pct = false }) => {
+    const fa = pct ? a.toFixed(0) + "%" : money ? SWf.fmt0(a) : a;
+    const fb = pct ? b.toFixed(0) + "%" : money ? SWf.fmt0(b) : b;
+    const up = b >= a;
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr", gap: 8, padding: "11px 0", borderTop: "1px solid var(--border-subtle)", alignItems: "center" }}>
+        <span style={{ fontSize: 13, color: "var(--ink-600)" }}>{label}</span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 13.5, color: "var(--ink-500)", textAlign: "right" }}>{fa}</span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 700, color: up ? "var(--forest-600)" : "var(--red-600)", textAlign: "right" }}>{fb}</span>
+      </div>
+    );
+  };
 
-const modalOverlay = { position: "fixed", inset: 0, background: "rgba(14,27,44,0.45)", zIndex: 60, display: "grid", placeItems: "center", padding: 20 };
-const modalCard = { width: "100%", maxWidth: 580, maxHeight: "90vh", overflowY: "auto", background: "#fff", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card-hover)" };
-const modalHead = { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, padding: "20px 22px", borderBottom: "1px solid var(--border-default)", position: "sticky", top: 0, background: "#fff", zIndex: 1 };
-const modalFoot = { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 22px", borderTop: "1px solid var(--border-default)", position: "sticky", bottom: 0, background: "#fff" };
-const iconX = { border: "none", background: "transparent", cursor: "pointer", color: "var(--ink-400)" };
-
-function RebuildModal({ business, coa, onClose, onApply }) {
-  const { Select } = DSx;
-  const [ind, setInd] = useS3(business.industry);
-  const [bt, setBt] = useS3(business.businessType);
-  const [stage, setStage] = useS3(business.stage || "Pre-Revenue");
-  const [plan, setPlan] = useS3(null);
-  const STAGES = ["Idea / Planning", "Pre-Revenue", "Just Launched", "Operating"];
   return (
-    <div onClick={onClose} style={modalOverlay}>
-      <div onClick={(e) => e.stopPropagation()} style={{ ...modalCard, maxWidth: 640 }}>
-        <div style={modalHead}>
-          <h2 style={{ font: "700 18px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>Change business type & rebuild COA</h2>
-          <button onClick={onClose} style={iconX}><Icon name="x" size={20} /></button>
-        </div>
-        <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 16 }}>
-          <Callout icon="lock">Switching your type rebuilds your Chart of Accounts and startup expenses. This is only available in your first 48 hours.</Callout>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <Select label="Industry" value={ind} onChange={(e) => { setInd(e.target.value); setBt((SW3.industries[e.target.value] || [""])[0]); setPlan(null); }}>{Object.keys(SW3.industries).map((x) => <option key={x}>{x}</option>)}</Select>
-            <Select label="Business type" value={bt} onChange={(e) => { setBt(e.target.value); setPlan(null); }}>{(SW3.industries[ind] || []).map((x) => <option key={x}>{x}</option>)}</Select>
-            <Select label="Stage" value={stage} onChange={(e) => { setStage(e.target.value); setPlan(null); }}>{STAGES.map((x) => <option key={x}>{x}</option>)}</Select>
+    <Panel title="Pricing simulator" subtitle="Test a new price and see the impact before you change it" right={
+      <select value={id} onChange={(e) => setId(e.target.value)} style={sel}>{products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+    }>
+      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24, alignItems: "start" }}>
+        <div style={{ background: "var(--cream-50)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: 18 }}>
+          <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)" }}>CURRENT PRICE</div>
+          <div style={{ font: "800 30px var(--font-display)", color: "var(--ink-900)", marginTop: 4 }}>{SWf.fmt0(base.retail)}</div>
+          <div style={{ marginTop: 18, font: "600 9.5px var(--font-mono)", letterSpacing: "0.1em", color: "var(--gold-700)" }}>TEST A NEW PRICE</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+            <span style={{ color: "var(--ink-400)", fontSize: 18 }}>$</span>
+            <input type="number" value={newPrice} onChange={(e) => setNewPrice(+e.target.value)} style={{ flex: 1, padding: "10px 12px", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-md)", fontSize: 20, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--navy-700)" }} />
           </div>
-          <AiGenerate industry={ind} businessType={bt} stage={stage} plan={plan} onPlan={setPlan} />
+          <input type="range" min={Math.max(1, Math.round(cost))} max={Math.round(base.retail * 2.5) || 100} value={newPrice} onChange={(e) => setNewPrice(+e.target.value)} style={{ width: "100%", marginTop: 12, accentColor: "var(--gold-600)" }} />
+          <div style={{ fontSize: 12, color: "var(--ink-500)", marginTop: 12, lineHeight: 1.5 }}>Based on <strong>{qty} units/month</strong> at <strong>{SWf.fmt0(cost)}</strong> cost per unit.</div>
         </div>
-        <div style={modalFoot}>
-          <button onClick={onClose} style={btnGhost}>Cancel</button>
-          <button disabled={!plan} onClick={() => plan && onApply(plan, { industry: ind, businessType: bt, stage })} style={{ ...btnPrimary, opacity: plan ? 1 : 0.5 }}><Icon name="check" size={16} /> Apply new COA & expenses</button>
+        <div>
+          <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr", gap: 8, paddingBottom: 4 }}>
+            <span></span>
+            <span style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.08em", color: "var(--ink-400)", textAlign: "right" }}>CURRENT</span>
+            <span style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.08em", color: "var(--gold-700)", textAlign: "right" }}>PROJECTED</span>
+          </div>
+          <Row label="Profit per sale" a={cur.perSale} b={proj.perSale} />
+          <Row label="Profit margin" a={cur.margin} b={proj.margin} pct />
+          <Row label="Monthly revenue" a={cur.rev} b={proj.rev} />
+          <Row label="Monthly profit" a={cur.mProfit} b={proj.mProfit} />
+          <Row label="Annual profit" a={cur.mProfit * 12} b={proj.mProfit * 12} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, padding: "12px 16px", background: "var(--gold-050)", border: "1px solid var(--gold-100)", borderRadius: "var(--radius-md)" }}>
+            <span style={{ fontSize: 13, color: "var(--ink-700)" }}>Break-even units / month at this price</span>
+            <span style={{ font: "800 20px var(--font-display)", color: "var(--gold-700)" }}>{breakeven}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }
 
-function PromptModal({ item, phase, onClose }) {
-  const [copied, setCopied] = useS3(false);
-  const copy = () => { try { navigator.clipboard && navigator.clipboard.writeText(item.prompt); } catch (e) {} setCopied(true); setTimeout(() => setCopied(false), 1600); };
-  return (
-    <div onClick={onClose} style={modalOverlay}>
-      <div onClick={(e) => e.stopPropagation()} style={{ ...modalCard, maxWidth: 640 }}>
-        <div style={modalHead}>
-          <div>
-            <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--gold-700)" }}>{phase.toUpperCase()} · PROMPT {item.n}</div>
-            <h2 style={{ font: "700 18px var(--font-display)", margin: "4px 0 0", color: "var(--ink-900)" }}>{item.title}</h2>
-          </div>
-          <button onClick={onClose} style={iconX}><Icon name="x" size={20} /></button>
-        </div>
-        <div style={{ padding: 22 }}>
-          <p style={{ fontSize: 13.5, color: "var(--ink-500)", margin: "0 0 14px" }}>{item.subtitle}</p>
-          <div style={{ background: "var(--cream-100)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: 16, fontSize: 13.5, color: "var(--ink-800)", lineHeight: 1.6, whiteSpace: "pre-wrap", maxHeight: 360, overflowY: "auto" }}>{item.prompt}</div>
-          <div style={{ marginTop: 14 }}><Callout icon="sparkle">Paste this into your own AI account. StartWise doesn't bill for AI usage — your history stays yours.</Callout></div>
-        </div>
-        <div style={modalFoot}>
-          <button onClick={onClose} style={btnGhost}>Close</button>
-          <button onClick={copy} style={btnPrimary}><Icon name={copied ? "check" : "file"} size={16} /> {copied ? "Copied!" : "Copy prompt"}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+/* =========================================================== PRODUCTS & SERVICES ===== */
+function Products({ products, setProducts, openEdit, role }) {
+  const [cat, setCat] = useF("All");
+  const [q, setQ] = useF("");
+  const cats = ["All", ...BIZ.productCategories];
+  const rows = products.filter((p) => (cat === "All" || p.category === cat) && p.name.toLowerCase().includes(q.toLowerCase()));
+  const lowItems = products.filter(BIZ.lowStock);
+  const agg = BIZ.aggregate(products);
+  const del = (id) => setProducts(products.filter((p) => p.id !== id));
+  const exportCSV = () => {
+    const head = ["Name", "SKU", "Category", "Type", "Cost", "Retail", "Wholesale", "Profit/unit", "Margin%", "Stock", "Units/mo", "Monthly revenue", "Channel", "Status"];
+    const data = products.map((p) => [p.name, p.sku, p.category, p.type, p.cost, p.retail, p.wholesale, BIZ.profitPerUnit(p), BIZ.marginPct(p).toFixed(0), p.stock ?? "", p.monthlyQty, BIZ.monthlyRevenue(p), p.channel, p.status]);
+    const csv = [head, ...data].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = "startwise-products.csv"; a.click();
+  };
+  const sel = { padding: "8px 12px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", fontSize: 13, background: "#fff", color: "var(--ink-700)" };
+  const ctx = "Products (cost / retail / margin% / monthly units):\n" + products.filter(BIZ.isSellable).map((p) => `- ${p.name}: cost ${SWf.fmt0(p.cost)}, retail ${SWf.fmt0(p.retail)}, margin ${BIZ.marginPct(p).toFixed(0)}%, ${p.monthlyQty}/mo`).join("\n");
 
-function Knowledge({ onTour }) {
-  const [sel, setSel] = useS3(null);
-  const [openStage, setOpenStage] = useS3(null);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ background: "var(--navy-900)", borderRadius: "var(--radius-lg)", padding: 28, color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
-        <div style={{ maxWidth: 560 }}>
-          <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.14em", color: "var(--gold-400)" }}>NEW TO STARTWISE?</div>
-          <h2 style={{ font: "800 26px var(--font-display)", margin: "8px 0 8px", letterSpacing: "-0.02em" }}>Take the guided tour</h2>
-          <p style={{ fontSize: 14, color: "var(--text-on-dark-muted)", margin: 0, lineHeight: 1.55 }}>A two-minute walkthrough of navigation, your dashboard, account setup, the 12-week planner, reports, and resources — so you can launch with confidence.</p>
-        </div>
-        <button onClick={onTour} style={{ ...btnPrimary, background: "var(--gold-500)", color: "var(--navy-900)", padding: "12px 22px", fontSize: 14.5 }}><Icon name="arrowRight" size={17} /> Take a tour</button>
+      <Callout icon="briefcase" title="Define what you sell — we do the math.">
+        Add every product or service you offer. StartWise automatically calculates your profit per unit, profit margin, and monthly revenue so you can price with confidence.
+      </Callout>
+
+      {lowItems.length > 0 && (
+        <Callout icon="bell" title="Your inventory is running low">
+          {lowItems.map((p) => p.name).join(", ")} {lowItems.length === 1 ? "is" : "are"} at or below the minimum stock level. Consider ordering more from your vendor.
+        </Callout>
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+        <Kpi label="Active products" value={agg.count} />
+        <Kpi label="Monthly revenue" value={SWf.fmt0(agg.revenue)} tone="good" />
+        <Kpi label="Monthly profit" value={SWf.fmt0(agg.netProfit)} tone={agg.netProfit >= 0 ? "good" : "warn"} sub="after all expenses" />
+        <Kpi label="Avg. profit margin" value={agg.avgMargin.toFixed(0) + "%"} />
       </div>
 
-      <Panel title="How to use StartWise" subtitle="Six short guides to every part of your launch plan">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-          {HOWTO.map((h) => (
-            <div key={h.t} style={{ border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: 18, background: "var(--cream-50)" }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: "var(--navy-050)", display: "grid", placeItems: "center", marginBottom: 12 }}><Icon name={h.icon} size={19} color="var(--navy-700)" /></div>
-              <div style={{ font: "700 15px var(--font-display)", color: "var(--ink-900)", marginBottom: 5 }}>{h.t}</div>
-              <div style={{ fontSize: 13, color: "var(--ink-500)", lineHeight: 1.5 }}>{h.d}</div>
+      <Panel
+        title="Products & services"
+        subtitle={`${products.length} items · profit and revenue calculated automatically`}
+        right={
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 10px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", background: "#fff" }}>
+              <Icon name="search" size={15} color="var(--ink-400)" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" style={{ border: "none", outline: "none", fontSize: 13, padding: "8px 0", width: 110, background: "transparent" }} />
             </div>
-          ))}
-        </div>
-      </Panel>
-
-      <Panel title="Business owner prompt toolkit" subtitle={`${KB.toolkit.reduce((s, p) => s + p.items.length, 0)} AI prompts across the journey — bring your own AI account`}>
-        <div style={{ marginBottom: 16 }}><Callout icon="sparkle"><strong>Bring your own AI.</strong> Each prompt is built to paste straight into your own AI account. StartWise doesn't bill for AI usage, and your history stays yours.</Callout></div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          {KB.toolkit.map((p) => (
-            <div key={p.phase}>
-              <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--gold-700)", marginBottom: 8 }}>{p.phase.toUpperCase()}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {p.items.map((it) => (
-                  <button key={it.n} onClick={() => setSel({ item: it, phase: p.phase })} style={{ textAlign: "left", display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", background: "var(--cream-50)", cursor: "pointer" }}>
-                    <span style={{ font: "700 12px var(--font-mono)", color: "var(--navy-700)", marginTop: 1 }}>{it.n}</span>
-                    <span style={{ flex: 1 }}>
-                      <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "var(--ink-900)" }}>{it.title}</span>
-                      <span style={{ display: "block", fontSize: 12, color: "var(--ink-500)", marginTop: 2 }}>{it.subtitle}</span>
-                    </span>
-                    <Icon name="arrowRight" size={15} color="var(--ink-400)" />
-                  </button>
+            <select value={cat} onChange={(e) => setCat(e.target.value)} style={sel}>{cats.map((c) => <option key={c}>{c === "All" ? "All categories" : c}</option>)}</select>
+            <button onClick={exportCSV} style={btnGhost}><Icon name="download" size={15} /> Export CSV</button>
+            <button onClick={() => openEdit({})} style={btnPrimary}><Icon name="plus" size={15} /> Add product</button>
+          </div>
+        }
+      >
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5 }}>
+            <thead>
+              <tr style={{ textAlign: "left" }}>
+                {["Product / service", "Type", "Cost", "Retail", "Profit/unit", "Margin", "Stock", "Units/mo", "Monthly rev.", "Status", ""].map((h, i) => (
+                  <th key={h + i} style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.06em", color: "var(--ink-500)", padding: "0 10px 10px", textAlign: i >= 2 && i <= 8 ? "right" : "left", whiteSpace: "nowrap" }}>{h.toUpperCase()}</th>
                 ))}
-              </div>
-            </div>
-          ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((p) => {
+                const profit = BIZ.profitPerUnit(p), margin = BIZ.marginPct(p), low = BIZ.lowStock(p);
+                return (
+                  <tr key={p.id} style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                    <td style={{ padding: "12px 10px" }}>
+                      <div style={{ fontWeight: 600, color: "var(--ink-900)" }}>{p.name}</div>
+                      <div style={{ fontSize: 11.5, color: "var(--ink-400)", fontFamily: "var(--font-mono)" }}>{p.sku} · {p.category}</div>
+                    </td>
+                    <td style={{ padding: "12px 10px", color: "var(--ink-600)", whiteSpace: "nowrap" }}>{p.type}</td>
+                    <td style={{ padding: "12px 10px", textAlign: "right", fontFamily: "var(--font-mono)" }}>{SWf.fmt0(p.cost)}</td>
+                    <td style={{ padding: "12px 10px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 600 }}>{SWf.fmt0(p.retail)}</td>
+                    <td style={{ padding: "12px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: "var(--forest-600)" }}>{SWf.fmt0(profit)}</td>
+                    <td style={{ padding: "12px 10px", textAlign: "right" }}><span style={{ fontFamily: "var(--font-mono)", fontWeight: 600, color: margin >= 40 ? "var(--forest-600)" : margin >= 20 ? "var(--gold-700)" : "var(--red-600)" }}>{margin.toFixed(0)}%</span></td>
+                    <td style={{ padding: "12px 10px", textAlign: "right", fontFamily: "var(--font-mono)", color: low ? "var(--red-600)" : "var(--ink-600)", fontWeight: low ? 700 : 400 }}>{p.stock == null ? "—" : p.stock + (low ? " ⚠" : "")}</td>
+                    <td style={{ padding: "12px 10px", textAlign: "right", fontFamily: "var(--font-mono)" }}>{p.monthlyQty}</td>
+                    <td style={{ padding: "12px 10px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 600 }}>{SWf.fmt0(BIZ.monthlyRevenue(p))}</td>
+                    <td style={{ padding: "12px 10px" }}><ProductStatusPill status={p.status} /></td>
+                    <td style={{ padding: "12px 10px" }}>
+                      <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                        <button onClick={() => openEdit(p)} title="Edit" style={iconBtnF}><Icon name="pencil" size={15} /></button>
+                        {role === "Admin" && <button onClick={() => del(p.id)} title="Delete" style={{ ...iconBtnF, color: "var(--red-600)" }}><Icon name="trash" size={15} /></button>}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr style={{ borderTop: "2px solid var(--border-strong)" }}>
+                <td colSpan={8} style={{ padding: "13px 10px", fontWeight: 700, color: "var(--ink-900)" }}>Total monthly revenue (active)</td>
+                <td style={{ padding: "13px 10px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{SWf.fmt0(agg.revenue)}</td>
+                <td colSpan={2}></td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       </Panel>
 
-      <Panel title="Entrepreneur blueprint series" subtitle={`${KB.blueprint.reduce((s, p) => s + p.stages.length, 0)} plain-English stages from idea to exit`}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          {KB.blueprint.map((p) => (
-            <div key={p.phase}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-                <span style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--gold-700)" }}>{p.phase.toUpperCase()}</span>
-                <span style={{ fontSize: 12, color: "var(--ink-400)" }}>{p.subtitle}</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {p.stages.map((st) => {
-                  const open = openStage === st.n;
-                  return (
-                    <div key={st.n} style={{ border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", background: "var(--cream-50)", overflow: "hidden" }}>
-                      <button onClick={() => setOpenStage(open ? null : st.n)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
-                        <div style={{ width: 30, height: 30, borderRadius: 999, background: "var(--gold-050)", color: "var(--gold-700)", display: "grid", placeItems: "center", font: "700 12px var(--font-mono)", flexShrink: 0 }}>{st.n}</div>
-                        <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--ink-900)" }}>{st.title}</span>
-                        <Icon name="chevron" size={17} color="var(--ink-400)" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
-                      </button>
-                      {open && (
-                        <div style={{ padding: "0 16px 16px 58px", display: "flex", flexDirection: "column", gap: 12 }}>
-                          {[["What it is", st.whatItIs], ["In plain English", st.plainEnglish], ["Why it matters", st.whyItMatters], ["Your first step", st.firstStep]].map(([k, v]) => v ? (
-                            <div key={k}>
-                              <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.08em", color: k === "Your first step" ? "var(--forest-700)" : "var(--ink-500)", marginBottom: 3 }}>{k.toUpperCase()}</div>
-                              <div style={{ fontSize: 13.5, color: "var(--ink-700)", lineHeight: 1.55 }}>{v}</div>
-                            </div>
-                          ) : null)}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Panel>
+      <PricingSimulator products={products} />
 
-      {sel && <PromptModal item={sel.item} phase={sel.phase} onClose={() => setSel(null)} />}
-
-      <Panel title="Finance for beginners" subtitle="Plain-English answers to the money questions every new owner asks">
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {(window.StartWiseBiz.financeArticles).map((g) => (
-            <div key={g.group}>
-              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--navy-050)", display: "grid", placeItems: "center" }}><Icon name={g.icon} size={15} color="var(--navy-700)" /></div>
-                <span style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--gold-700)" }}>{g.group.toUpperCase()}</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {g.articles.map((a) => (
-                  <div key={a.t} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", background: "var(--cream-50)" }}>
-                    <Icon name="book" size={16} color="var(--navy-600)" style={{ flexShrink: 0, marginTop: 2 }} />
-                    <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink-900)" }}>{a.t}</div>
-                      <div style={{ fontSize: 12.5, color: "var(--ink-500)", marginTop: 2, lineHeight: 1.45 }}>{a.d}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Panel>
-
-      <Panel title="AI business assistant" subtitle="Your connected AI account can analyze your business data — find these on each screen">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-          {(window.StartWiseBiz.aiAssistant).map((a) => (
-            <div key={a.title} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "14px 16px", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", background: "var(--cream-50)" }}>
-              <div style={{ width: 34, height: 34, borderRadius: 9, background: "var(--gold-050)", display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name={a.icon} size={17} color="var(--gold-700)" /></div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--gold-700)" }}>{a.area}</div>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink-900)", marginTop: 1 }}>{a.title}</div>
-                <div style={{ fontSize: 12.5, color: "var(--ink-500)", marginTop: 2, lineHeight: 1.45 }}>{a.subtitle}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 14 }}><Callout icon="sparkle"><strong>Bring your own AI.</strong> StartWise sends your data summary to your connected AI account for analysis — it never bills you for AI usage, and your history stays yours.</Callout></div>
-      </Panel>
-
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, padding: "20px 24px", background: "var(--gold-050)", border: "1px solid var(--gold-100)", borderRadius: "var(--radius-lg)", flexWrap: "wrap" }}>
-        <div>
-          <div style={{ font: "700 17px var(--font-display)", color: "var(--ink-900)" }}>Need help building your business?</div>
-          <div style={{ fontSize: 13.5, color: "var(--ink-600)", marginTop: 3 }}>Across the Table offers one-on-one consulting for small business owners.</div>
-        </div>
-        <a href="mailto:info@acrossthetable.biz" style={{ ...btnPrimary, textDecoration: "none", background: "var(--navy-700)" }}><Icon name="mail" size={16} /> info@acrossthetable.biz</a>
-      </div>
+      <AiAssistant icon="briefcase" title="Analyze my product pricing" subtitle="Ask your AI whether your margins are healthy" prompt={BIZ.aiAssistant[0].prompt} context={ctx} />
     </div>
   );
 }
 
-Object.assign(window, { BusinessInfo, Knowledge, Legal, LegalModal });
+function ProductStatusPill({ status }) {
+  const map = { Active: { bg: "var(--success-bg)", fg: "var(--success)" }, Planning: { bg: "var(--info-bg)", fg: "var(--info)" }, Paused: { bg: "var(--gold-050)", fg: "var(--gold-700)" }, Discontinued: { bg: "var(--ink-100)", fg: "var(--ink-500)" } };
+  const s = map[status] || map.Active;
+  return <span style={{ background: s.bg, color: s.fg, fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 999, whiteSpace: "nowrap" }}>{status}</span>;
+}
+
+const iconBtnF = { display: "grid", placeItems: "center", width: 30, height: 30, border: "1px solid var(--border-default)", borderRadius: 8, background: "#fff", cursor: "pointer", color: "var(--ink-600)" };
+
+Object.assign(window, { Products, ProductEditor, PricingSimulator, AiAssistant, ProductStatusPill });

@@ -1,177 +1,113 @@
-/* StartWise — Auth: login + onboarding */
-const { useState: useAuthState } = React;
-const DSauth = window.AcrossTheTableDesignSystem_520822;
+/* StartWise — Products, Vendors, Revenue, Cash Flow & Finance-for-Beginners data
+   (House Cleaning Edition sample data). Pure data + helpers; screens compute aggregates. */
+(function () {
+  "use strict";
 
-function AuthShell({ children, wide }) {
-  return (
-    <div style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr", placeItems: "center", background: "var(--cream-50)", padding: 24 }}>
-      <div style={{ width: "100%", maxWidth: wide ? 720 : 440 }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 22 }}>
-          <img src={(window.__resources && window.__resources.logo) || "assets/logo.png"} alt="Across the Table" style={{ width: 190, display: "block" }} />
-          <div style={{ font: "800 24px var(--font-display)", letterSpacing: "-0.02em", color: "var(--navy-700)", marginTop: 8 }}>StartWise</div>
-          <div style={{ font: "500 10px var(--font-mono)", letterSpacing: "0.16em", color: "var(--ink-500)", marginTop: 4 }}>YOUR 12-WEEK BUSINESS LAUNCH PLANNER</div>
-        </div>
-        {children}
-        <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: "var(--ink-400)" }}>
-          Across the Table · acrossthetable.biz
-        </div>
-      </div>
-    </div>
-  );
-}
+  /* ---------- Taxonomies (plain-English options for beginners) ---------- */
+  const productCategories = ["Recurring Cleaning", "Deep Cleaning", "Specialty Cleaning", "Supplies & Retail", "Subscription Plans", "Commercial Cleaning"];
+  const productTypes = ["Physical Product", "Digital Product", "Service", "Subscription", "Package"];
+  const salesChannels = ["Website", "Retail Store", "Marketplace", "Phone", "Social Media", "Other"];
+  const productStatuses = ["Planning", "Active", "Paused", "Discontinued"];
 
-function Login({ onLogin, onStart }) {
-  const { Input, Button } = DSauth;
-  const [email, setEmail] = useAuthState("dana@freshnestclean.com");
-  const [code, setCode] = useAuthState("SW-HC-2048");
-  return (
-    <AuthShell>
-      <div style={{ background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 28 }}>
-        <h2 style={{ font: "700 20px var(--font-display)", color: "var(--ink-900)", margin: "0 0 4px" }}>Welcome back</h2>
-        <p style={{ fontSize: 13.5, color: "var(--ink-500)", margin: "0 0 20px" }}>Sign in to pick up your launch plan where you left off.</p>
-        <form onSubmit={(e) => { e.preventDefault(); onLogin(); }} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Input label="Access code" value={code} onChange={(e) => setCode(e.target.value)} hint="Found in your welcome email." />
-          <Button variant="primary" size="lg" type="submit" style={{ marginTop: 4 }}>Sign in</Button>
-        </form>
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 16, fontSize: 13, color: "var(--ink-500)" }}>
-          <a href="#" onClick={(e) => e.preventDefault()} style={{ color: "var(--navy-600)" }}>Forgot access code?</a>
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "22px 0" }}>
-        <div style={{ flex: 1, height: 1, background: "var(--border-default)" }}></div>
-        <span style={{ fontSize: 11, color: "var(--ink-400)", letterSpacing: "0.08em" }}>NEW HERE?</span>
-        <div style={{ flex: 1, height: 1, background: "var(--border-default)" }}></div>
-      </div>
-      <button onClick={onStart} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", background: "#fff", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-md)", font: "600 14px var(--font-sans)", color: "var(--navy-700)", cursor: "pointer" }}>
-        <Icon name="sparkle" size={16} color="var(--gold-600)" /> Start a new business
-      </button>
-    </AuthShell>
-  );
-}
+  const vendorCategories = ["Supplier", "Manufacturer", "Distributor", "Marketing Agency", "Technology Provider", "Software Provider", "Printing Vendor", "Shipping Vendor", "Professional Services", "Other"];
+  const paymentTermsOptions = ["Due Upon Receipt", "Net 15", "Net 30", "Net 60", "Monthly", "Annual"];
+  const vendorStatuses = ["Active", "Pending", "Inactive"];
 
-const INDUSTRIES = ["House Cleaning", "Landscaping", "HVAC", "Hair Salon", "Mobile Detailing", "Other"];
-const STAGES = ["Idea / Planning", "Pre-Revenue", "Just Launched", "Operating"];
-const FUND_OPTS = ["Personal Savings", "Friends & Family", "SBA Loan", "Business Loan", "Investor Funding", "Grants", "Credit Cards", "Equipment Financing", "Crowdfunding", "Other"];
+  /* ---------- Products & services (sample) ---------- */
+  // type/inventory: only physical products track stock; services/subscriptions leave stock null.
+  const products = [
+    { id: "p1", category: "Recurring Cleaning", name: "Standard residential clean", sku: "SVC-STD", description: "Whole-home recurring clean, 2–3 hours.", type: "Service", vendor: "—", cost: 45, retail: 130, wholesale: 110, stock: null, minStock: null, reorder: null, channel: "Website", monthlyQty: 60, launch: "2026-08-31", status: "Active", notes: "Most popular weekly/bi-weekly plan." },
+    { id: "p2", category: "Deep Cleaning", name: "Deep clean", sku: "SVC-DEEP", description: "Top-to-bottom deep clean incl. baseboards & appliances.", type: "Service", vendor: "—", cost: 70, retail: 220, wholesale: 190, stock: null, minStock: null, reorder: null, channel: "Phone", monthlyQty: 18, launch: "2026-08-31", status: "Active", notes: "Upsell from standard clean." },
+    { id: "p3", category: "Specialty Cleaning", name: "Move-out clean", sku: "SVC-MOVE", description: "Empty-home turnover clean for landlords & movers.", type: "Service", vendor: "—", cost: 90, retail: 280, wholesale: 240, stock: null, minStock: null, reorder: null, channel: "Marketplace", monthlyQty: 8, launch: "2026-09-15", status: "Active", notes: "High margin, books in clusters." },
+    { id: "p4", category: "Supplies & Retail", name: "Eco supply refill kit", sku: "RET-KIT", description: "Branded eco all-purpose, glass & bathroom refills.", type: "Physical Product", vendor: "GreenLeaf Janitorial Supply", cost: 14, retail: 35, wholesale: 28, stock: 12, minStock: 15, reorder: 40, channel: "Website", monthlyQty: 25, launch: "2026-09-01", status: "Active", notes: "Sold to recurring clients as add-on." },
+    { id: "p5", category: "Subscription Plans", name: "FreshNest monthly plan", sku: "SUB-MO", description: "4 cleans/month auto-billed subscription.", type: "Subscription", vendor: "—", cost: 120, retail: 320, wholesale: 320, stock: null, minStock: null, reorder: null, channel: "Website", monthlyQty: 22, launch: "2026-08-31", status: "Active", notes: "Best for predictable recurring revenue." },
+    { id: "p6", category: "Commercial Cleaning", name: "Small office package", sku: "PKG-OFC", description: "Weekly small-office clean, 5-visit package.", type: "Package", vendor: "—", cost: 110, retail: 300, wholesale: 270, stock: null, minStock: null, reorder: null, channel: "Phone", monthlyQty: 6, launch: "2026-10-01", status: "Planning", notes: "New commercial line, launching Q4." },
+  ];
 
-function Onboarding({ onDone, onCancel }) {
-  const { Input, Select, Checkbox, Switch, Button } = DSauth;
-  const [step, setStep] = useAuthState(0);
-  const [biz, setBiz] = useAuthState({ businessName: "", fullName: "", industry: "Home Service Industry", businessType: "Cleaning Companies", stage: "Idea / Planning", launchDate: "" });
-  const [funds, setFunds] = useAuthState(FUND_OPTS.map((s, i) => ({ source: s, on: i < 2, amount: i === 0 ? 12000 : i === 1 ? 5000 : 0 })));
-  const [sms, setSms] = useAuthState(true);
-  const [terms, setTerms] = useAuthState(false);
-  const [legalDoc, setLegalDoc] = useAuthState(null);
+  /* ---------- Monthly operating expenses (non-COGS cash out) ---------- */
+  const opexLines = [
+    { name: "Crew payroll & labor", gl: "6000", amount: 6800 },
+    { name: "Insurance & bond", gl: "6100", amount: 320 },
+    { name: "Vehicle & fuel", gl: "6400", amount: 540 },
+    { name: "Software & subscriptions", gl: "6600", amount: 210 },
+    { name: "Marketing & advertising", gl: "6300", amount: 900 },
+    { name: "Misc / overhead", gl: "6000", amount: 430 },
+  ];
 
-  const [plan, setPlan] = useAuthState(null);
-  const total = funds.filter((f) => f.on).reduce((s, f) => s + (+f.amount || 0), 0);
-  const steps = ["Business", "AI plan", "Funding", "Launch & terms"];
+  /* ---------- Helpers (per-product calculations from spec) ---------- */
+  const profitPerUnit = (p) => (+p.retail || 0) - (+p.cost || 0);
+  const marginPct = (p) => (+p.retail ? (profitPerUnit(p) / +p.retail) * 100 : 0);
+  const monthlyRevenue = (p) => (+p.retail || 0) * (+p.monthlyQty || 0);
+  const monthlyCogs = (p) => (+p.cost || 0) * (+p.monthlyQty || 0);
+  const monthlyProfit = (p) => profitPerUnit(p) * (+p.monthlyQty || 0);
+  const lowStock = (p) => p.stock != null && p.minStock != null && +p.stock <= +p.minStock;
+  const isSellable = (p) => p.status === "Active" || p.status === "Paused";
 
-  const setFund = (i, patch) => setFunds(funds.map((f, j) => (j === i ? { ...f, ...patch } : f)));
-  const canNext = step === 0 ? (biz.businessName.trim() && biz.fullName.trim()) : step === 1 ? !!plan : step === 3 ? terms : true;
+  // Aggregate across active/paused products
+  function aggregate(list) {
+    const sellable = list.filter(isSellable);
+    const revenue = sellable.reduce((s, p) => s + monthlyRevenue(p), 0);
+    const cogs = sellable.reduce((s, p) => s + monthlyCogs(p), 0);
+    const opex = opexLines.reduce((s, l) => s + l.amount, 0);
+    const grossProfit = revenue - cogs;
+    const netProfit = grossProfit - opex;
+    const margins = sellable.filter((p) => +p.retail).map(marginPct);
+    const avgMargin = margins.length ? margins.reduce((a, b) => a + b, 0) / margins.length : 0;
+    return { revenue, cogs, opex, grossProfit, netProfit, avgMargin, monthlyExpenses: cogs + opex, count: sellable.length };
+  }
 
-  return (
-    <AuthShell wide>
-      <div style={{ background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 30 }}>
-        {/* stepper */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-          {steps.map((s, i) => (
-            <div key={s} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
-              <div style={{ height: 4, borderRadius: 999, background: i <= step ? "var(--forest-600)" : "var(--cream-100)", transition: "background .2s" }}></div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: i <= step ? "var(--forest-700)" : "var(--ink-400)" }}>{i + 1}. {s}</span>
-            </div>
-          ))}
-        </div>
+  /* ---------- Finance for Beginners — Knowledge Center articles ---------- */
+  const financeArticles = [
+    { group: "Product & pricing", icon: "briefcase", articles: [
+      { t: "What is a product SKU?", d: "A SKU is your internal code to track each product or service you sell." },
+      { t: "How to price your product or service", d: "Start from your cost, add the profit you need, then check it against competitors." },
+      { t: "Understanding cost of goods sold", d: "COGS is what it costs to deliver one sale — supplies, labor, materials." },
+      { t: "Retail vs wholesale pricing", d: "Retail is your customer price; wholesale is a lower price for bulk or resellers." },
+      { t: "How to calculate profit margin", d: "Profit ÷ retail price × 100. It tells you how much of each sale you keep." },
+      { t: "How to create product packages", d: "Bundle services into one price to raise your average sale and simplify buying." },
+      { t: "How to analyze competitors' pricing", d: "List nearby competitors, their prices, and where you can stand apart." },
+    ]},
+    { group: "Inventory", icon: "ledger", articles: [
+      { t: "What is inventory?", d: "Inventory is the physical product you keep on hand to sell or use on jobs." },
+      { t: "Understanding minimum stock levels", d: "The lowest amount you can hold before you risk running out mid-month." },
+      { t: "How reordering works", d: "When stock hits the minimum, order your reorder quantity to refill safely." },
+      { t: "Avoiding overstock and shortages", d: "Too much ties up cash; too little loses sales. Aim for the middle." },
+    ]},
+    { group: "Revenue", icon: "chart", articles: [
+      { t: "What is revenue?", d: "Revenue is all the money coming in from sales before any costs." },
+      { t: "Revenue vs profit", d: "Revenue is the top line; profit is what's left after you pay your costs." },
+      { t: "How sales forecasting works", d: "Estimate units sold per month to project revenue ahead of time." },
+      { t: "How to set monthly sales goals", d: "Work backward from the income you need to a unit target per product." },
+      { t: "How to increase customer lifetime value", d: "Recurring plans, add-ons, and great service keep customers paying longer." },
+    ]},
+    { group: "Vendor management", icon: "user", articles: [
+      { t: "How to choose a vendor", d: "Compare price, reliability, and service — not just the lowest quote." },
+      { t: "How to compare vendor pricing", d: "Line up quotes on the same terms so you're comparing apples to apples." },
+      { t: "Understanding payment terms", d: "Net 30 means you pay 30 days after the invoice — it helps your cash flow." },
+      { t: "How to negotiate better agreements", d: "Volume, loyalty, and prompt payment are your bargaining chips." },
+      { t: "When to change vendors", d: "Switch when price, quality, or reliability stops working for your business." },
+    ]},
+    { group: "Cash flow", icon: "dollar", articles: [
+      { t: "What is cash flow?", d: "The money moving in (revenue) and out (expenses) of your business." },
+      { t: "Why profitable businesses can fail", d: "A profit on paper still fails if the cash runs out before bills are due." },
+      { t: "Understanding burn rate", d: "How fast you spend cash each month when expenses exceed income." },
+      { t: "How much to keep in reserve", d: "Aim for 3–6 months of expenses in cash to weather slow periods." },
+      { t: "How to read a cash flow projection", d: "Follow the ending balance row — it should stay comfortably above zero." },
+    ]},
+  ];
 
-        {step === 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <h2 style={{ font: "700 19px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>Tell us about your business</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <Input label="Your name" placeholder="e.g. Dana Rivera" value={biz.fullName} onChange={(e) => setBiz({ ...biz, fullName: e.target.value })} />
-              <Input label="Business name" placeholder="e.g. FreshNest Cleaning Co." value={biz.businessName} onChange={(e) => setBiz({ ...biz, businessName: e.target.value })} />
-              <Select label="Business type" value={biz.businessType} onChange={(e) => { const bt = e.target.value; setBiz({ ...biz, businessType: bt, industry: StartWiseData.typeToIndustry[bt] || biz.industry }); setPlan(null); }}>{StartWiseData.allBusinessTypes.map((x) => <option key={x}>{x}</option>)}</Select>
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <label style={{ font: "600 12px var(--font-sans)", color: "var(--ink-700)" }}>Industry <span style={{ color: "var(--ink-400)", fontWeight: 400 }}>· auto-filled</span></label>
-                <div style={{ padding: "0 12px", height: "var(--control-md)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", fontSize: 14, background: "var(--cream-100)", color: "var(--ink-700)", display: "flex", alignItems: "center", gap: 8 }}><Icon name="briefcase" size={15} color="var(--ink-400)" />{biz.industry}</div>
-              </div>
-            </div>
-            <Select label="Business stage" value={biz.stage} onChange={(e) => setBiz({ ...biz, stage: e.target.value })}>{STAGES.map((x) => <option key={x}>{x}</option>)}</Select>
-            <Callout icon="lock"><strong>Heads up:</strong> after 15 days your business name, industry, and type lock to your license. Next, AI builds a Chart of Accounts tailored to a {biz.businessType}.</Callout>
-          </div>
-        )}
+  /* ---------- AI Business Assistant prompts (bring your own AI) ---------- */
+  const aiAssistant = [
+    { area: "Products & Services", icon: "briefcase", title: "Analyze my product pricing", subtitle: "Are my margins healthy?", prompt: "Analyze my product pricing and tell me if my margins are healthy. Here is my product list with cost per unit, retail price, profit margin, and monthly sales quantity. Flag anything underpriced, suggest a healthier price, and explain the impact on my monthly profit in plain English." },
+    { area: "Revenue Planner", icon: "chart", title: "Grow my revenue", subtitle: "Suggest ways to increase sales", prompt: "Review my monthly sales projections and suggest practical ways to increase revenue. Consider raising prices, adding packages, increasing units sold, and improving customer lifetime value. Give me 5 specific, beginner-friendly actions ranked by impact." },
+    { area: "Vendors", icon: "user", title: "Optimize my vendors", subtitle: "Find ways to reduce costs", prompt: "Compare my vendors and identify opportunities to reduce costs without hurting quality. Here is my vendor list with category, pricing, payment terms, and performance ratings. Recommend which to renegotiate, consolidate, or replace." },
+    { area: "Cash Flow", icon: "dollar", title: "Coach my cash flow", subtitle: "Explain my projection & fix risks", prompt: "Explain why my projected cash flow gets tight and provide recommendations. Here is my 12-month projection with starting balance, monthly revenue, and monthly expenses. Tell me in plain English which months are risky and the 3 best moves to protect my cash." },
+  ];
 
-        {step === 1 && (
-          <AiGenerate industry={biz.industry} businessType={biz.businessType} stage={biz.stage} plan={plan} onPlan={setPlan} />
-        )}
-
-        {step === 2 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <h2 style={{ font: "700 19px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>How are you funding the launch?</h2>
-            <p style={{ fontSize: 13, color: "var(--ink-500)", margin: 0 }}>Check every source you'll use and enter an amount. We'll total your startup budget.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {funds.map((f, i) => (
-                <label key={f.source} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", border: `1px solid ${f.on ? "var(--forest-500)" : "var(--border-default)"}`, background: f.on ? "var(--forest-050)" : "#fff", borderRadius: "var(--radius-md)", cursor: "pointer", transition: "all .13s" }}>
-                  <input type="checkbox" checked={f.on} onChange={(e) => setFund(i, { on: e.target.checked })} style={{ accentColor: "var(--forest-600)", width: 16, height: 16 }} />
-                  <span style={{ flex: 1, fontSize: 13.5, color: "var(--ink-800)", fontWeight: 500 }}>{f.source}</span>
-                  {f.on && (
-                    <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                      <span style={{ color: "var(--ink-400)", fontSize: 13 }}>$</span>
-                      <input type="number" value={f.amount} onChange={(e) => setFund(i, { amount: e.target.value })} onClick={(e) => e.preventDefault()} style={{ width: 78, padding: "5px 7px", border: "1px solid var(--border-default)", borderRadius: 6, fontSize: 13, fontFamily: "var(--font-mono)" }} />
-                    </span>
-                  )}
-                </label>
-              ))}
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", background: "var(--navy-900)", borderRadius: "var(--radius-md)", color: "#fff" }}>
-              <span style={{ fontSize: 13, color: "var(--text-on-dark-muted)" }}>Total startup budget</span>
-              <span style={{ font: "800 24px var(--font-display)" }}>{StartWiseData.fmt0(total)}</span>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <h2 style={{ font: "700 19px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>When do you want to launch?</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "end" }}>
-              <Input label="Target launch date" type="date" value={biz.launchDate} onChange={(e) => setBiz({ ...biz, launchDate: e.target.value })} hint="We'll build your 12-week plan backward from here." />
-              <div style={{ paddingBottom: 8 }}><Switch label="Daily SMS reminders" checked={sms} onChange={(e) => setSms(e.target.checked)} /></div>
-            </div>
-            {sms && (
-              <div style={{ display: "flex", gap: 12, background: "var(--navy-900)", borderRadius: "var(--radius-md)", padding: "14px 16px", color: "#fff" }}>
-                <Icon name="sparkle" size={18} color="var(--gold-400)" style={{ flexShrink: 0, marginTop: 1 }} />
-                <div>
-                  <div style={{ font: "600 9px var(--font-mono)", letterSpacing: "0.12em", color: "var(--gold-400)" }}>EVERY DAILY SMS INCLUDES AN AFFIRMATION</div>
-                  <div style={{ fontSize: 13.5, marginTop: 4, lineHeight: 1.45 }}>“{(StartWiseData.affirmationOfDay() || {}).text}”</div>
-                </div>
-              </div>
-            )}
-            <div style={{ background: "var(--cream-100)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: 18 }}>
-              <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.12em", color: "var(--ink-500)", marginBottom: 10 }}>BEFORE YOU START</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: "var(--ink-600)", marginBottom: 14 }}>
-                {(window.LEGAL_DOCS || []).map((d) => (
-                  <a key={d.id} href="#" onClick={(e) => { e.preventDefault(); setLegalDoc(d); }} style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--navy-600)" }}><Icon name="file" size={15} /> {d.title}</a>
-                ))}
-              </div>
-              <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}>
-                <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} style={{ accentColor: "var(--forest-600)", width: 17, height: 17, marginTop: 1 }} />
-                <span style={{ fontSize: 13, color: "var(--ink-700)" }}>I've reviewed and accept the Terms, Privacy Policy, and License Agreement. {terms && <span style={{ color: "var(--ink-400)" }}>· accepted {new Date().toLocaleDateString()}</span>}</span>
-              </label>
-            </div>
-          </div>
-        )}
-
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 26 }}>
-          <button onClick={() => (step === 0 ? onCancel() : setStep(step - 1))} style={{ ...btnGhost, background: "transparent", border: "none", color: "var(--ink-500)" }}>{step === 0 ? "Cancel" : "Back"}</button>
-          {step < 3 ? (
-            <Button variant="primary" disabled={!canNext} onClick={() => canNext && setStep(step + 1)} rightIcon={<Icon name="arrowRight" size={16} />}>Continue</Button>
-          ) : (
-            <Button variant="primary" disabled={!terms} onClick={() => onDone({ biz, funds, sms, terms, total, plan })} rightIcon={<Icon name="check" size={16} />}>Launch my plan</Button>
-          )}
-        </div>
-      </div>
-      {legalDoc && <LegalModal doc={legalDoc} onClose={() => setLegalDoc(null)} />}
-    </AuthShell>
-  );
-}
-
-Object.assign(window, { Login, Onboarding });
+  window.StartWiseBiz = {
+    productCategories, productTypes, salesChannels, productStatuses,
+    vendorCategories, paymentTermsOptions, vendorStatuses,
+    products, opexLines, financeArticles, aiAssistant,
+    profitPerUnit, marginPct, monthlyRevenue, monthlyCogs, monthlyProfit, lowStock, isSellable, aggregate,
+  };
+})();

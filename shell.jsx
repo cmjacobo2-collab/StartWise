@@ -1,270 +1,252 @@
-/* StartWise — Revenue Planner, Cash Flow Planner, Financial Health Score */
-const { useState: useR, useMemo: useRM } = React;
-const SWr = window.StartWiseData;
-const BIZr = window.StartWiseBiz;
+/* StartWise — shell: icons, sidebar, topbar, shared bits */
+const DSatt = window.AcrossTheTableDesignSystem_520822;
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function monthLabels(n, start) {
-  const s = start != null ? start : new Date().getMonth();
-  return Array.from({ length: n }, (_, i) => MONTH_NAMES[(s + i) % 12]);
-}
-const CHANNEL_COLORS = { Website: "#1B344F", Phone: "#246049", Marketplace: "#C8962E", "Retail Store": "#34597A", "Social Media": "#A8392B", Other: "#647281" };
-
-/* Build a 12-month projection from current products. Revenue grows gently; expenses grow slower. */
-function buildProjection(products, startingBalance, gRev = 0.03, gExp = 0.015) {
-  const agg = BIZr.aggregate(products);
-  const labels = monthLabels(12);
-  let bal = startingBalance;
-  const rows = labels.map((m, i) => {
-    const revenue = agg.revenue * Math.pow(1 + gRev, i);
-    const expenses = agg.monthlyExpenses * Math.pow(1 + gExp, i);
-    const profit = revenue - expenses;
-    const prevRev = i === 0 ? agg.revenue : agg.revenue * Math.pow(1 + gRev, i - 1);
-    const growth = i === 0 ? 0 : ((revenue - prevRev) / (prevRev || 1)) * 100;
-    bal += profit;
-    return { month: m, revenue, expenses, profit, growth, ending: bal };
-  });
-  return { agg, labels, rows, endBalance: bal };
+/* ---- Responsive: true on phones / small tablets ---- */
+function useIsMobile(bp = 760) {
+  const q = "(max-width:" + bp + "px)";
+  const get = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(q).matches : false);
+  const [m, setM] = React.useState(get);
+  React.useEffect(() => {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia(q);
+    const on = (e) => setM(e.matches);
+    mq.addEventListener ? mq.addEventListener("change", on) : mq.addListener(on);
+    setM(mq.matches);
+    return () => { mq.removeEventListener ? mq.removeEventListener("change", on) : mq.removeListener(on); };
+  }, [q]);
+  return m;
 }
 
-/* =========================================================== FINANCIAL HEALTH SCORE ===== */
-function scoreBusiness(products, startingBalance) {
-  const agg = BIZr.aggregate(products);
-  const reserveMonths = agg.monthlyExpenses > 0 ? startingBalance / agg.monthlyExpenses : 99;
-  let level, recs = [];
-  const cashPos = agg.netProfit >= 0;
-  if (!cashPos || reserveMonths < 1) level = "red";
-  else if (agg.avgMargin < 30 || reserveMonths < 3 || agg.netProfit < agg.monthlyExpenses * 0.1) level = "yellow";
-  else level = "green";
-
-  if (!cashPos) recs.push("Your expenses exceed revenue — raise prices or increase sales volume to turn cash-flow positive.");
-  if (agg.avgMargin < 35) recs.push("Average margin is below 35% — review pricing and find lower-cost vendors.");
-  if (reserveMonths < 3) recs.push("Build a cash reserve of at least 3 months of expenses to weather slow periods.");
-  if (agg.netProfit > 0 && agg.netProfit < agg.monthlyExpenses * 0.15) recs.push("Profit is thin — trim unnecessary expenses or add a higher-margin product.");
-  if (level === "green") recs.push("You're in good shape — keep margins strong and your reserve growing as you scale.");
-  return { level, agg, reserveMonths, recs: recs.slice(0, 3) };
-}
-
-const HEALTH = {
-  green: { label: "Healthy", color: "var(--forest-600)", bg: "var(--forest-050)", border: "var(--forest-100)", desc: "Positive cash flow, good margins, and a solid cash reserve." },
-  yellow: { label: "Needs attention", color: "var(--gold-700)", bg: "var(--gold-050)", border: "var(--gold-100)", desc: "Some warning signs — low margins, rising costs, or a thin reserve." },
-  red: { label: "Immediate action needed", color: "var(--red-600)", bg: "#FBEDEA", border: "var(--red-100)", desc: "Negative cash flow or running low on money. Act now." },
+/* ---- Inline Lucide-style icon set (24x24, 2px stroke) ---- */
+const ICONS = {
+  dashboard: ["M3 3h7v9H3z", "M14 3h7v5h-7z", "M14 12h7v9h-7z", "M3 16h7v5H3z"],
+  calendar: ["M3 4h18v18H3z", "M16 2v4", "M8 2v4", "M3 10h18", "M8 14h.01", "M12 14h.01", "M16 14h.01", "M8 18h.01", "M12 18h.01"],
+  dollar: ["M12 2v20", "M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"],
+  chart: ["M3 3v18h18", "M18 17V9", "M13 17V5", "M8 17v-3"],
+  runbook: ["M9 2h6v4H9z", "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2", "M9 12h6", "M9 16h6"],
+  ledger: ["M4 3h16v18H4z", "M4 9h16", "M4 15h16", "M10 3v18"],
+  briefcase: ["M2 7h20v14H2z", "M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"],
+  help: ["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", "M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3", "M12 17h.01"],
+  plus: ["M5 12h14", "M12 5v14"],
+  download: ["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", "M7 10l5 5 5-5", "M12 15V3"],
+  x: ["M18 6 6 18", "M6 6l12 12"],
+  pencil: ["M12 20h9", "M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"],
+  trash: ["M3 6h18", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", "M10 11v6", "M14 11v6"],
+  chevron: ["M6 9l6 6 6-6"],
+  check: ["M20 6 9 17l-5-5"],
+  search: ["M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z", "M21 21l-4.3-4.3"],
+  arrowRight: ["M5 12h14", "M12 5l7 7-7 7"],
+  logout: ["M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", "M16 17l5-5-5-5", "M21 12H9"],
+  printer: ["M6 9V2h12v7", "M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2", "M6 14h12v8H6z"],
+  file: ["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z", "M14 2v6h6", "M16 13H8", "M16 17H8"],
+  sliders: ["M4 21v-7", "M4 10V3", "M12 21v-9", "M12 8V3", "M20 21v-5", "M20 12V3", "M1 14h6", "M9 8h6", "M17 16h6"],
+  sun: ["M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z", "M12 1v2", "M12 21v2", "M4.2 4.2l1.4 1.4", "M18.4 18.4l1.4 1.4", "M1 12h2", "M21 12h2", "M4.2 19.8l1.4-1.4", "M18.4 5.6l1.4-1.4"],
+  lock: ["M5 11h14v10H5z", "M8 11V7a4 4 0 0 1 8 0v4"],
+  bell: ["M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9", "M13.7 21a2 2 0 0 1-3.4 0"],
+  flag: ["M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z", "M4 22v-7"],
+  star: ["M12 2l3 7 7 .5-5.5 4.5L18 21l-6-4-6 4 1.5-7L2 9.5 9 9z"],
+  user: ["M20 21a8 8 0 1 0-16 0", "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
+  mail: ["M4 4h16v16H4z", "M22 6l-10 7L2 6"],
+  book: ["M4 19.5A2.5 2.5 0 0 1 6.5 17H20", "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"],
+  sparkle: ["M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"],
+  grip: ["M9 5h.01", "M9 12h.01", "M9 19h.01", "M15 5h.01", "M15 12h.01", "M15 19h.01"],
+  shield: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"],
+  scale: ["M12 3v18", "M5 7h14", "M7 7l-3 7h6z", "M17 7l-3 7h6z", "M8 21h8"],
+  package: ["M12 2 3 7v10l9 5 9-5V7z", "M3 7l9 5 9-5", "M12 12v10"],
+  trending: ["M3 17l6-6 4 4 8-8", "M21 7v6h-6"],
+  wallet: ["M3 7a2 2 0 0 1 2-2h14v4", "M3 7v10a2 2 0 0 0 2 2h15V7z", "M17 13h.01"],
 };
 
-function HealthScore({ products, startingBalance, compact }) {
-  const { level, agg, reserveMonths, recs } = scoreBusiness(products, startingBalance);
-  const h = HEALTH[level];
-  const dial = (
-    <div style={{ display: "flex", gap: 6 }}>
-      {["green", "yellow", "red"].map((k) => (
-        <div key={k} title={HEALTH[k].label} style={{ width: 14, height: 14, borderRadius: 999, background: HEALTH[k].color, opacity: level === k ? 1 : 0.2, boxShadow: level === k ? `0 0 0 4px ${h.bg}` : "none" }}></div>
-      ))}
-    </div>
-  );
-
-  if (compact) {
-    return (
-      <div style={{ background: h.bg, border: `1px solid ${h.border}`, borderRadius: "var(--radius-lg)", padding: "18px 20px", display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-        <div style={{ width: 52, height: 52, borderRadius: 999, background: h.color, display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="shield" size={26} color="#fff" /></div>
-        <div style={{ flex: 1, minWidth: 180 }}>
-          <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.12em", color: h.color }}>BUSINESS FINANCIAL HEALTH</div>
-          <div style={{ font: "800 22px var(--font-display)", color: "var(--ink-900)", marginTop: 2 }}>{h.label}</div>
-          <div style={{ fontSize: 12.5, color: "var(--ink-600)", marginTop: 2 }}>{h.desc}</div>
-        </div>
-        <div style={{ display: "flex", gap: 22, flexWrap: "wrap" }}>
-          {[["Monthly profit", SWr.fmt0(agg.netProfit)], ["Avg. margin", agg.avgMargin.toFixed(0) + "%"], ["Cash reserve", (reserveMonths > 24 ? "24+" : reserveMonths.toFixed(1)) + " mo"]].map(([k, v]) => (
-            <div key={k}><div style={{ font: "800 18px var(--font-display)", color: h.color }}>{v}</div><div style={{ font: "600 9px var(--font-mono)", letterSpacing: "0.08em", color: "var(--ink-500)" }}>{k.toUpperCase()}</div></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
+function Icon({ name, size = 20, color = "currentColor", strokeWidth = 2, style }) {
+  const paths = ICONS[name] || [];
   return (
-    <Panel title="Business financial health score" subtitle="A plain-English read on whether your business is financially healthy" right={dial}>
-      <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 24, alignItems: "start" }}>
-        <div style={{ background: h.bg, border: `1px solid ${h.border}`, borderRadius: "var(--radius-md)", padding: 20, textAlign: "center" }}>
-          <div style={{ width: 64, height: 64, borderRadius: 999, background: h.color, display: "grid", placeItems: "center", margin: "0 auto 12px" }}><Icon name="shield" size={32} color="#fff" /></div>
-          <div style={{ font: "800 20px var(--font-display)", color: h.color }}>{h.label}</div>
-          <div style={{ fontSize: 12.5, color: "var(--ink-600)", marginTop: 6, lineHeight: 1.5 }}>{h.desc}</div>
-        </div>
-        <div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 18 }}>
-            {[["Monthly cash flow", SWr.fmt0(agg.netProfit), agg.netProfit >= 0 ? "var(--forest-600)" : "var(--red-600)"], ["Average margin", agg.avgMargin.toFixed(0) + "%", agg.avgMargin >= 35 ? "var(--forest-600)" : "var(--gold-700)"], ["Cash reserve", (reserveMonths > 24 ? "24+" : reserveMonths.toFixed(1)) + " months", reserveMonths >= 3 ? "var(--forest-600)" : "var(--gold-700)"]].map(([k, v, c]) => (
-              <div key={k} style={{ background: "var(--cream-50)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: "12px 14px" }}>
-                <div style={{ font: "600 9px var(--font-mono)", letterSpacing: "0.08em", color: "var(--ink-500)" }}>{k.toUpperCase()}</div>
-                <div style={{ font: "800 20px var(--font-display)", color: c, marginTop: 3 }}>{v}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.1em", color: "var(--ink-500)", marginBottom: 8 }}>RECOMMENDATIONS</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {recs.map((r, i) => (
-              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13.5, color: "var(--ink-700)", lineHeight: 1.5 }}>
-                <Icon name={level === "green" ? "check" : "arrowRight"} size={16} color={h.color} style={{ flexShrink: 0, marginTop: 2 }} />{r}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </Panel>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style} aria-hidden="true">
+      {paths.map((d, i) => (<path key={i} d={d} />))}
+    </svg>
   );
 }
 
-/* =========================================================== REVENUE PLANNER ===== */
-function Revenue({ products, startingBalance }) {
-  const proj = useRM(() => buildProjection(products, startingBalance), [products, startingBalance]);
-  const { agg, rows } = proj;
-  const sellable = products.filter(BIZr.isSellable);
-
-  const byChannel = {};
-  sellable.forEach((p) => { byChannel[p.channel] = (byChannel[p.channel] || 0) + BIZr.monthlyRevenue(p); });
-  const channelData = Object.entries(byChannel).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value, display: SWr.fmt0(value), color: CHANNEL_COLORS[label] || "#647281" }));
-
-  const prodData = sellable.map((p, i) => ({ label: p.name, short: p.name.split(" ")[0], value: BIZr.monthlyRevenue(p), display: SWr.fmt0(BIZr.monthlyRevenue(p)), color: SWr.palette[i % SWr.palette.length] }));
-  const topProducts = [...sellable].sort((a, b) => BIZr.monthlyRevenue(b) - BIZr.monthlyRevenue(a)).slice(0, 5);
-  const marginRows = [...sellable].sort((a, b) => BIZr.marginPct(b) - BIZr.marginPct(a)).map((p) => ({ label: p.name, meta: BIZr.marginPct(p).toFixed(0) + "%", bars: [{ value: BIZr.marginPct(p), color: BIZr.marginPct(p) >= 40 ? "var(--forest-600)" : BIZr.marginPct(p) >= 20 ? "var(--gold-500)" : "var(--red-600)" }] }));
-  const ctx = "Monthly revenue " + SWr.fmt0(agg.revenue) + ", monthly expenses " + SWr.fmt0(agg.monthlyExpenses) + ", avg margin " + agg.avgMargin.toFixed(0) + "%.\nProducts:\n" + sellable.map((p) => `- ${p.name}: ${p.monthlyQty}/mo at ${SWr.fmt0(p.retail)} = ${SWr.fmt0(BIZr.monthlyRevenue(p))}/mo`).join("\n");
-
+/* ---- Pills ---- */
+function StatusPill({ status, followUp }) {
+  const map = {
+    "To Do": { bg: "var(--ink-100)", fg: "var(--ink-600)" },
+    "In Progress": { bg: "var(--info-bg)", fg: "var(--info)" },
+    "Follow-Up": { bg: "var(--gold-050)", fg: "var(--gold-700)" },
+    "Completed": { bg: "var(--success-bg)", fg: "var(--success)" },
+  };
+  const s = map[status] || map["To Do"];
+  const label = status === "Follow-Up" && followUp ? "Follow-Up · " + followUp.slice(5) : status;
+  return <span style={{ background: s.bg, color: s.fg, fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 999, whiteSpace: "nowrap" }}>{label}</span>;
+}
+function PriorityPill({ p }) {
+  const map = { High: "var(--red-600)", Medium: "var(--gold-700)", Low: "var(--ink-500)" };
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <Callout icon="chart" title="Plan your revenue with confidence.">
-        These numbers come straight from your products & services. As you adjust pricing or sales, your revenue forecast, profit, and annual projection update automatically.
-      </Callout>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: map[p], fontWeight: 500 }}>
+      <span style={{ width: 7, height: 7, borderRadius: 999, background: map[p] }}></span>{p}
+    </span>
+  );
+}
+function TypeTag({ type }) {
+  const fin = type === "Financial";
+  return <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 6, background: fin ? "var(--forest-050)" : "var(--navy-050)", color: fin ? "var(--forest-700)" : "var(--navy-600)" }}>{fin ? "Financial" : "Operational"}</span>;
+}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-        <Kpi label="Monthly revenue" value={SWr.fmt0(agg.revenue)} tone="good" sub="from all active products" />
-        <Kpi label="Monthly profit" value={SWr.fmt0(agg.netProfit)} tone={agg.netProfit >= 0 ? "good" : "warn"} sub="revenue − expenses" />
-        <Kpi label="Average profit margin" value={agg.avgMargin.toFixed(0) + "%"} />
-        <Kpi label="Annual revenue projection" value={SWr.fmt0(rows.reduce((s, r) => s + r.revenue, 0))} sub="next 12 months" />
+/* ---- Callout (gold/cream info box) ---- */
+function Callout({ children, icon = "sparkle", title }) {
+  return (
+    <div style={{ display: "flex", gap: 12, background: "var(--gold-050)", border: "1px solid var(--gold-100)", borderRadius: "var(--radius-md)", padding: "14px 16px" }}>
+      <div style={{ color: "var(--gold-700)", flexShrink: 0, marginTop: 1 }}><Icon name={icon} size={18} /></div>
+      <div style={{ fontSize: 13.5, color: "var(--ink-700)", lineHeight: 1.5 }}>
+        {title && <div style={{ fontWeight: 700, color: "var(--ink-900)", marginBottom: 2 }}>{title}</div>}
+        {children}
       </div>
+    </div>
+  );
+}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 16 }}>
-        <Panel title="Monthly revenue trend" subtitle="Projected revenue, expenses & profit over 12 months">
-          <LineChart labels={proj.labels} series={[
-            { label: "Revenue", color: "var(--forest-600)", fill: true, data: rows.map((r) => Math.round(r.revenue)) },
-            { label: "Expenses", color: "var(--red-600)", data: rows.map((r) => Math.round(r.expenses)) },
-            { label: "Profit", color: "var(--navy-600)", data: rows.map((r) => Math.round(r.profit)) },
-          ]} />
-        </Panel>
-        <Panel title="Revenue by sales channel" subtitle="Where your monthly revenue comes from">
-          <Donut data={channelData} centerTop={SWr.fmt0(agg.revenue)} centerBottom="Per month" size={190} thickness={26} />
-        </Panel>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <Panel title="Product revenue breakdown" subtitle="Monthly revenue contribution by product">
-          <Donut data={prodData} centerTop={SWr.fmt0(agg.revenue)} centerBottom="Total" size={190} thickness={26} />
-        </Panel>
-        <Panel title="Profit margin by product" subtitle="Higher is better — aim above 40%">
-          <HBar rows={marginRows} money={false} />
-        </Panel>
-      </div>
-
-      <Panel title="Revenue projection" subtitle="12-month forecast with gentle growth — revenue, expenses, profit & growth">
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5 }}>
-            <thead>
-              <tr style={{ textAlign: "left" }}>
-                {["Month", "Revenue", "Expenses", "Profit", "Growth %"].map((h, i) => (
-                  <th key={h} style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.08em", color: "var(--ink-500)", padding: "0 12px 10px", textAlign: i === 0 ? "left" : "right" }}>{h.toUpperCase()}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border-subtle)" }}>
-                  <td style={{ padding: "10px 12px", fontWeight: 600, color: "var(--ink-900)" }}>{r.month}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "var(--font-mono)" }}>{SWr.fmt0(r.revenue)}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "var(--font-mono)", color: "var(--ink-500)" }}>{SWr.fmt0(r.expenses)}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 600, color: r.profit >= 0 ? "var(--forest-600)" : "var(--red-600)" }}>{SWr.fmt0(r.profit)}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "var(--font-mono)", color: "var(--ink-500)" }}>{i === 0 ? "—" : "+" + r.growth.toFixed(1) + "%"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+/* ---- Card surface ---- */
+function Panel({ title, subtitle, right, children, pad = 24, style }) {
+  return (
+    <div style={{ background: "linear-gradient(152deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.66) 46%, rgba(244,239,229,0.58) 100%)", backdropFilter: "blur(14px) saturate(125%)", WebkitBackdropFilter: "blur(14px) saturate(125%)", border: "1px solid rgba(255,255,255,0.65)", borderRadius: "var(--radius-lg)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(224,217,203,0.35), 0 1px 2px rgba(20,40,63,0.05), 0 14px 30px -14px rgba(20,40,63,0.20)", ...style }}>
+      {(title || right) && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, padding: `${pad}px ${pad}px 0` }}>
+          <div>
+            {title && <div style={{ font: "700 17px var(--font-display)", color: "var(--ink-900)", letterSpacing: "-0.01em" }}>{title}</div>}
+            {subtitle && <div style={{ fontSize: 12.5, color: "var(--ink-500)", marginTop: 3 }}>{subtitle}</div>}
+          </div>
+          {right}
         </div>
-      </Panel>
+      )}
+      <div style={{ padding: pad }}>{children}</div>
+    </div>
+  );
+}
 
-      <Panel title="Top performing products" subtitle="Your biggest revenue drivers this month">
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {topProducts.map((p, i) => (
-            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", background: "var(--cream-50)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)" }}>
-              <div style={{ width: 28, height: 28, borderRadius: 999, background: "var(--navy-050)", color: "var(--navy-700)", display: "grid", placeItems: "center", font: "700 12px var(--font-mono)" }}>{i + 1}</div>
-              <div style={{ flex: 1 }}><div style={{ fontWeight: 600, color: "var(--ink-900)" }}>{p.name}</div><div style={{ fontSize: 12, color: "var(--ink-500)" }}>{p.monthlyQty} units/mo · {BIZr.marginPct(p).toFixed(0)}% margin</div></div>
-              <div style={{ font: "800 18px var(--font-display)", color: "var(--forest-600)" }}>{SWr.fmt0(BIZr.monthlyRevenue(p))}</div>
+/* ---- Sidebar ---- */
+const NAV = [
+  { group: "Overview", items: [
+    { id: "dashboard", label: "Dashboard", icon: "dashboard" },
+    { id: "plan", label: "12-Week Plan", icon: "calendar" },
+  ]},
+  { group: "Financials", items: [
+    { id: "budget", label: "Budget Planner", icon: "dollar" },
+    { id: "products", label: "Products & Services", icon: "package" },
+    { id: "revenue", label: "Revenue Planner", icon: "trending" },
+    { id: "cashflow", label: "Cash Flow", icon: "wallet" },
+    { id: "reports", label: "Reports", icon: "chart" },
+    { id: "coa", label: "Chart of Accounts", icon: "ledger" },
+  ]},
+  { group: "Operations", items: [
+    { id: "runbook", label: "Vendors & RunBook", icon: "runbook" },
+  ]},
+  { group: "Settings", items: [
+    { id: "business", label: "Business Info", icon: "briefcase" },
+    { id: "legal", label: "Legal & Compliance", icon: "scale" },
+  ]},
+  { group: "Learn", items: [
+    { id: "knowledge", label: "Knowledge Center", icon: "help" },
+  ]},
+];
+
+function Sidebar({ route, setRoute, accent, business, edition, mobile, open, onClose }) {
+  const pos = mobile
+    ? { position: "fixed", top: 0, left: 0, zIndex: 80, transform: open ? "translateX(0)" : "translateX(-110%)", transition: "transform .25s var(--ease-out)", boxShadow: open ? "0 24px 56px rgba(11,22,35,0.45)" : "none" }
+    : { position: "sticky", top: 0 };
+  const go = (id) => { setRoute(id); if (mobile && onClose) onClose(); };
+  return (
+    <>
+      {mobile && open && <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(9,29,48,0.5)", zIndex: 75 }} aria-hidden="true" />}
+      <aside style={{ width: 248, flexShrink: 0, background: "var(--navy-900)", color: "var(--text-on-dark)", display: "flex", flexDirection: "column", height: "100vh", ...pos }}>
+      <div style={{ padding: "20px 18px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, borderBottom: "1px solid var(--border-dark)" }}>
+        <div style={{ width: "100%", background: "#fff", borderRadius: 12, padding: "12px 16px", display: "grid", placeItems: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.18)" }}>
+          <img src={(window.__resources && window.__resources.logo) || "logo.png"} alt="Across the Table" style={{ width: "100%", maxWidth: 150, display: "block" }} />
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ font: "800 21px var(--font-display)", letterSpacing: "-0.02em" }}>StartWise</div>
+          <div style={{ font: "500 9.5px var(--font-mono)", letterSpacing: "0.14em", color: "var(--text-on-dark-muted)", marginTop: 3 }}>STARTUP LAUNCH PLANNER</div>
+          <div style={{ fontSize: 10, color: "var(--gold-400)", marginTop: 4 }}>{edition}</div>
+        </div>
+      </div>
+      <nav style={{ flex: 1, overflowY: "auto", padding: "14px 12px" }}>
+        {NAV.map((sec) => (
+          <div key={sec.group} style={{ marginBottom: 16 }}>
+            <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.14em", color: "var(--text-on-dark-muted)", padding: "0 10px 7px" }}>{sec.group.toUpperCase()}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {sec.items.map((it) => {
+                const active = route === it.id;
+                return (
+                  <button
+                    key={it.id}
+                    onClick={() => go(it.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 10px", borderRadius: "var(--radius-md)", border: "none", cursor: "pointer", textAlign: "left", font: "500 14px var(--font-sans)", background: active ? accent : "transparent", color: active ? "#fff" : "var(--text-on-dark)", transition: "background .13s, color .13s" }}
+                    onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}
+                    onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <Icon name={it.icon} size={18} color={active ? "#fff" : "var(--gold-400)"} />
+                    {it.label}
+                  </button>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </Panel>
-
-      <AiAssistant icon="chart" title="Grow my revenue" subtitle="Ask your AI for ways to increase sales" prompt={BIZr.aiAssistant[1].prompt} context={ctx} />
-    </div>
-  );
-}
-
-/* =========================================================== CASH FLOW PLANNER ===== */
-function CashFlow({ products, startingBalance }) {
-  const proj = useRM(() => buildProjection(products, startingBalance), [products, startingBalance]);
-  const { agg, rows, endBalance } = proj;
-  const lowestBal = Math.min(...rows.map((r) => r.ending));
-  const ctx = "Starting balance " + SWr.fmt0(startingBalance) + ", monthly revenue " + SWr.fmt0(agg.revenue) + ", monthly expenses " + SWr.fmt0(agg.monthlyExpenses) + ", monthly net " + SWr.fmt0(agg.netProfit) + ". Projected 12-month ending balance " + SWr.fmt0(endBalance) + ", lowest point " + SWr.fmt0(lowestBal) + ".";
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <Callout icon="dollar" title="Cash flow is the lifeblood of your business.">
-        Cash flow shows the money coming into your business (revenue) and the money leaving it (expenses). A profitable business can still fail if it runs out of cash — so watch your ending balance closely.
-      </Callout>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
-        <Kpi label="Starting balance" value={SWr.fmt0(startingBalance)} sub="cash on hand today" />
-        <Kpi label="Monthly revenue" value={SWr.fmt0(agg.revenue)} tone="good" />
-        <Kpi label="Monthly expenses" value={SWr.fmt0(agg.monthlyExpenses)} tone="warn" />
-        <Kpi label="Monthly profit / loss" value={SWr.fmt0(agg.netProfit)} tone={agg.netProfit >= 0 ? "good" : "warn"} />
-        <Kpi label="12-month balance" value={SWr.fmt0(endBalance)} tone={endBalance >= startingBalance ? "good" : "warn"} sub="projected" />
+          </div>
+        ))}
+      </nav>
+      <div style={{ borderTop: "1px solid var(--border-dark)", padding: "14px 18px" }}>
+        <div style={{ fontSize: 13, fontWeight: 700 }}>{business.businessName}</div>
+        <div style={{ fontSize: 11, color: "var(--text-on-dark-muted)" }}>{business.businessType}</div>
+        <a href="mailto:info@acrossthetable.biz" style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 12, fontSize: 11.5, color: "var(--gold-400)", textDecoration: "none" }}>
+          <Icon name="mail" size={14} /> acrossthetable.biz
+        </a>
       </div>
-
-      <HealthScore products={products} startingBalance={startingBalance} />
-
-      <Panel title="12-month cash flow projection" subtitle="Your projected cash balance, revenue & expenses month by month">
-        <LineChart labels={proj.labels} series={[
-          { label: "Cash balance", color: "var(--navy-600)", fill: true, data: rows.map((r) => Math.round(r.ending)) },
-          { label: "Revenue", color: "var(--forest-600)", data: rows.map((r) => Math.round(r.revenue)) },
-          { label: "Expenses", color: "var(--red-600)", data: rows.map((r) => Math.round(r.expenses)) },
-        ]} />
-        {lowestBal < agg.monthlyExpenses && (
-          <div style={{ marginTop: 14 }}><Callout icon="bell" title="Watch your cash reserve">Your projected balance dips to {SWr.fmt0(lowestBal)} — less than one month of expenses. Build a bigger reserve or raise revenue before then.</Callout></div>
-        )}
-      </Panel>
-
-      <Panel title="Monthly burn rate" subtitle="Ending balance = starting balance + revenue − expenses, rolled forward each month">
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5 }}>
-            <thead>
-              <tr style={{ textAlign: "left" }}>
-                {["Month", "Revenue", "Expenses", "Net cash flow", "Ending balance"].map((h, i) => (
-                  <th key={h} style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.08em", color: "var(--ink-500)", padding: "0 12px 10px", textAlign: i === 0 ? "left" : "right" }}>{h.toUpperCase()}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border-subtle)" }}>
-                  <td style={{ padding: "10px 12px", fontWeight: 600, color: "var(--ink-900)" }}>{r.month}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "var(--font-mono)" }}>{SWr.fmt0(r.revenue)}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "var(--font-mono)", color: "var(--ink-500)" }}>{SWr.fmt0(r.expenses)}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 600, color: r.profit >= 0 ? "var(--forest-600)" : "var(--red-600)" }}>{r.profit >= 0 ? "+" : ""}{SWr.fmt0(r.profit)}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 700, color: r.ending >= 0 ? "var(--ink-900)" : "var(--red-600)" }}>{SWr.fmt0(r.ending)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
-
-      <AiAssistant icon="dollar" title="Coach my cash flow" subtitle="Ask your AI to explain risks and fixes" prompt={BIZr.aiAssistant[3].prompt} context={ctx} />
-    </div>
+      </aside>
+    </>
   );
 }
 
-Object.assign(window, { Revenue, CashFlow, HealthScore, scoreBusiness, buildProjection });
+/* ---- TopBar ---- */
+const iconBtnTop = { display: "grid", placeItems: "center", width: 38, height: 38, background: "var(--surface-card)", color: "var(--ink-700)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", cursor: "pointer", flexShrink: 0 };
+
+function TopBar({ title, user, onAddTask, onLibrary, onExport, onSignOut, onTweaks, onMenu, mobile }) {
+  const { Avatar } = DSatt;
+  return (
+    <header style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: mobile ? 8 : 16, padding: "14px 28px", background: "rgba(251,248,242,0.86)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", borderBottom: "1px solid var(--border-default)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+        {mobile && (
+          <button onClick={onMenu} title="Menu" aria-label="Open menu" style={iconBtnTop}><Icon name="grip" size={18} /></button>
+        )}
+        <h1 style={{ font: (mobile ? "700 17px" : "700 22px") + " var(--font-display)", color: "var(--ink-900)", letterSpacing: "-0.02em", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{title}</h1>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: mobile ? 6 : 10, flexShrink: 0 }}>
+        {!mobile && (
+          <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "5px 12px 5px 6px", background: "var(--surface-card)", border: "1px solid var(--border-default)", borderRadius: 999 }}>
+            <Avatar name={user.name} size="sm" />
+            <div style={{ lineHeight: 1.15 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-900)" }}>{user.name}</div>
+            </div>
+            <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.08em", color: "var(--gold-700)", background: "var(--gold-050)", padding: "2px 7px", borderRadius: 999 }}>{user.role.toUpperCase()}</span>
+            <button onClick={onSignOut} title="Sign out" style={{ display: "flex", border: "none", background: "transparent", cursor: "pointer", color: "var(--ink-400)", padding: 2 }}><Icon name="logout" size={16} /></button>
+          </div>
+        )}
+        {!mobile && <button onClick={onExport} style={btnGhost}><Icon name="download" size={16} /> Export CSV</button>}
+        {!mobile && onLibrary && <button onClick={onLibrary} style={btnGhost}><Icon name="book" size={16} /> Task library</button>}
+        {!mobile && <button onClick={onAddTask} style={btnPrimary}><Icon name="plus" size={16} /> Add Task</button>}
+
+        {mobile && <button onClick={onExport} title="Export CSV" aria-label="Export CSV" style={iconBtnTop}><Icon name="download" size={17} /></button>}
+        {mobile && onLibrary && <button onClick={onLibrary} title="Task library" aria-label="Task library" style={iconBtnTop}><Icon name="book" size={17} /></button>}
+        {mobile && <button onClick={onAddTask} title="Add task" aria-label="Add task" style={{ ...btnPrimary, padding: "10px 12px" }}><Icon name="plus" size={17} /></button>}
+        {mobile && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 6px 4px 4px", background: "var(--surface-card)", border: "1px solid var(--border-default)", borderRadius: 999 }}>
+            <Avatar name={user.name} size="sm" />
+            <button onClick={onSignOut} title="Sign out" aria-label="Sign out" style={{ display: "flex", border: "none", background: "transparent", cursor: "pointer", color: "var(--ink-400)", padding: 2 }}><Icon name="logout" size={16} /></button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+
+const btnPrimary = { display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 16px", background: "var(--forest-600)", color: "#fff", border: "none", borderRadius: "var(--radius-md)", font: "600 13.5px var(--font-sans)", cursor: "pointer", transition: "background .13s" };
+const btnGhost = { display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 14px", background: "var(--surface-card)", color: "var(--ink-700)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", font: "600 13.5px var(--font-sans)", cursor: "pointer", transition: "background .13s" };
+const btnOutline = { display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 13px", background: "transparent", color: "var(--navy-700)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-md)", font: "600 12.5px var(--font-sans)", cursor: "pointer" };
+
+Object.assign(window, { Icon, StatusPill, PriorityPill, TypeTag, Callout, Panel, Sidebar, TopBar, btnPrimary, btnGhost, btnOutline, iconBtnTop, NAV, useIsMobile });

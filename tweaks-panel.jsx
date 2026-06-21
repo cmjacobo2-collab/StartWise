@@ -1,29 +1,541 @@
-/* StartWise — Task catalog (Financial + Non-Financial) sourced from the StartWise Excel Example.
-   Task names feed the Add-Task dropdown and the Task Library browser. Financial tasks carry a GL "role"
-   that resolves to a real account in the active Chart of Accounts (see glRole / resolveGL). */
-window.StartWiseTaskCatalog = {
-  financial: [{"name":"Accountant Fees","category":"Financial Planning","sub":"Accounting & Finance","est":500,"role":"operating","desc":"","vendors":[]},{"name":"Bookkeeping Services","category":"Financial Planning","sub":"Accounting & Finance","est":400,"role":"operating","desc":"Accounting and invoicing software designed for freelancers and small businesses.","vendors":[{"name":"FreshBooks","website":"https://www.freshbooks.com"},{"name":"QuickBooks","website":"https://quickbooks.intuit.com"},{"name":"Xero","website":"https://www.xero.com"},{"name":"Wave","website":"https://www.waveapps.com"},{"name":"Zoho Books","website":"https://www.zoho.com/books"}]},{"name":"Financial Consulting","category":"Financial Planning","sub":"Accounting & Finance","est":250,"role":"operating","desc":"","vendors":[]},{"name":"Payroll Services","category":"Financial Planning","sub":"Accounting & Finance","est":150,"role":"operating","desc":"","vendors":[]},{"name":"Tax Preparation","category":"Financial Planning","sub":"Accounting & Finance","est":750,"role":"operating","desc":"","vendors":[]},{"name":"Accounting & Finance","category":"Office & Operation","sub":"General Administrative","est":50,"role":"software","desc":"AI accounting assistant for bookkeeping, invoicing, and financial reporting.","vendors":[{"name":"QuickBooks Intuit Assist","website":"https://quickbooks.intuit.com/ai-accounting-software/"},{"name":"Xero","website":"https://www.xero.com/us/"}]},{"name":"File/Cloud Storage","category":"Office & Operation","sub":"General Administrative","est":15,"role":"software","desc":"Cloud storage and file sharing platform for businesses.","vendors":[{"name":"Dropbox","website":"https://www.dropbox.com"},{"name":"Google Drive","website":"https://drive.google.com"},{"name":"OneDrive","website":"https://onedrive.live.com"}]},{"name":"Ai Appllication","category":"Office & Operation","sub":"Technology","est":30,"role":"software","desc":"","vendors":[]},{"name":"Domain Registration","category":"Office & Operation","sub":"Technology","est":20,"role":"software","desc":"","vendors":[{"name":"Namecheap","website":"https://www.namecheap.com"},{"name":"GoDaddy","website":"https://www.godaddy.com"}]},{"name":"Research & Business Intelligence","category":"Office & Operation","sub":"Technology","est":25,"role":"software","desc":"AI platform for long-form writing, document analysis, and workflow assistance.","vendors":[{"name":"Claude","website":"https://claude.ai"},{"name":"Perplexity AI","website":"https://www.perplexity.ai"}]},{"name":"Sales & Sales Funnels","category":"Office & Operation","sub":"Technology","est":50,"role":"software","desc":"","vendors":[{"name":"Zapier AI","website":"https://zapier.com/ai"},{"name":"Tidio AI","website":"https://www.tidio.com"},{"name":"Drift","website":"https://www.drift.com"},{"name":"Salesforce Einstein","website":"https://www.salesforce.com/products/einstein-ai-solutions/"},{"name":"HubSpot AI","website":"https://www.hubspot.com/artificial-intelligence"}]},{"name":"Software Subscriptions","category":"Office & Operation","sub":"Technology","est":100,"role":"software","desc":"","vendors":[]},{"name":"Website Hosting","category":"Office & Operation","sub":"Technology","est":30,"role":"software","desc":"Popular website platform used to build blogs and business websites.","vendors":[{"name":"WordPress","website":"https://wordpress.org"},{"name":"Squarespace","website":"https://www.squarespace.com"},{"name":"Wix","website":"https://www.wix.com"}]},{"name":"Business Bank Account Fees","category":"Office & Operation","sub":"Banking Fees","est":25,"role":"software","desc":"","vendors":[]},{"name":"Credit Card Processing Fees","category":"Office & Operation","sub":"Banking Fees","est":30,"role":"software","desc":"Online payment platform used to send and receive payments globally.","vendors":[{"name":"PayPal","website":"https://www.paypal.com"},{"name":"Stripe","website":"https://stripe.com"},{"name":"Authorize.net","website":"https://www.authorize.net"},{"name":"Square","website":"https://squareup.com"}]},{"name":"Merchant Service Fees","category":"Office & Operation","sub":"Banking Fees","est":50,"role":"software","desc":"","vendors":[]},{"name":"Transaction Fees","category":"Office & Operation","sub":"Banking Fees","est":20,"role":"software","desc":"","vendors":[]},{"name":"Business Consulting","category":"Office & Operation","sub":"Professional Services","est":1200,"role":"software","desc":"","vendors":[]},{"name":"Cybersecurity Services","category":"Office & Operation","sub":"Professional Services","est":250,"role":"software","desc":"Managed IT support company offering cybersecurity, computer repair, and network management services.","vendors":[{"name":"NerdsToGo","website":"https://www.nerdstogo.com"}]},{"name":"It Support","category":"Office & Operation","sub":"Professional Services","est":175,"role":"software","desc":"","vendors":[{"name":"TeamLogic IT","website":"https://www.teamlogicit.com"},{"name":"Geek Squad Business","website":"https://www.bestbuy.com/site/services/geek-squad-business/pcmcat1595606903658.c?id=pcmcat1595606903658"}]},{"name":"Marketing Agency Services","category":"Office & Operation","sub":"Professional Services","est":2500,"role":"software","desc":"","vendors":[]},{"name":"Business Interruption Insurance","category":"Office & Operation","sub":"Insurance","est":1200,"role":"insurance","desc":"","vendors":[]},{"name":"General Liability Insurance","category":"Office & Operation","sub":"Insurance","est":800,"role":"insurance","desc":"","vendors":[]},{"name":"Liability Or Business Insurance","category":"Office & Operation","sub":"Insurance","est":800,"role":"insurance","desc":"","vendors":[]},{"name":"Professional Liability Insurance","category":"Office & Operation","sub":"Insurance","est":1000,"role":"insurance","desc":"","vendors":[]},{"name":"Property Insurance","category":"Office & Operation","sub":"Insurance","est":1400,"role":"insurance","desc":"","vendors":[]},{"name":"Workers Compensation Insurance","category":"Office & Operation","sub":"Insurance","est":1800,"role":"insurance","desc":"","vendors":[]},{"name":"Business Travel","category":"Office & Operation","sub":"Travel","est":600,"role":"vehicle","desc":"","vendors":[{"name":"Navan","website":"https://navan.com/sign-up"},{"name":"Perk","website":"https://www.perk.com"},{"name":"Direct","website":"https://www.dt.com"}]},{"name":"Lodging","category":"Office & Operation","sub":"Travel","est":175,"role":"vehicle","desc":"","vendors":[]},{"name":"Meals And Entertainment","category":"Office & Operation","sub":"Travel","est":120,"role":"vehicle","desc":"","vendors":[]},{"name":"Mileage Reimbursement","category":"Office & Operation","sub":"Travel","est":60,"role":"vehicle","desc":"","vendors":[]},{"name":"Cleaning Services","category":"Office & Operation","sub":"Operations","est":175,"role":"operating","desc":"","vendors":[]},{"name":"Equipment Maintenance","category":"Office & Operation","sub":"Operations","est":300,"role":"operating","desc":"","vendors":[]},{"name":"Security Services","category":"Office & Operation","sub":"Operations","est":500,"role":"operating","desc":"","vendors":[]},{"name":"Conferences And Seminars","category":"Office & Operation","sub":"Training & Education","est":500,"role":"operating","desc":"","vendors":[]},{"name":"Courses And Certifications","category":"Office & Operation","sub":"Training & Education","est":250,"role":"operating","desc":"","vendors":[]},{"name":"Coworking Space","category":"Office & Operation","sub":"Office Rent","est":450,"role":"operating","desc":"","vendors":[]},{"name":"CRM Software","category":"Office & Operation","sub":"Software Subscription","est":80,"role":"software","desc":"Advanced CRM used to manage customer relationships and sales pipelines.","vendors":[{"name":"Salesforce","website":"https://www.salesforce.com"},{"name":"Zoho CRM","website":"https://www.zoho.com/crm"},{"name":"HubSpot CRM","website":"https://www.hubspot.com"},{"name":"Pipedrive","website":"https://www.pipedrive.com"}]},{"name":"Customer Service & Communication","category":"Office & Operation","sub":"Software Subscription","est":30,"role":"software","desc":"AI meeting assistant that records, transcribes, and summarizes conversations.","vendors":[{"name":"Fireflies.ai","website":"https://fireflies.ai"},{"name":"Otter.ai","website":"https://otter.ai"},{"name":"Loom AI","website":"https://www.loom.com/ai"}]},{"name":"Project Management & Productivity","category":"Office & Operation","sub":"Software Subscription","est":25,"role":"software","desc":"AI productivity assistant for Microsoft 365 applications like Word, Excel, and Outlook.","vendors":[{"name":"Microsoft Copilot","website":"https://copilot.microsoft.com"},{"name":"Notion AI","website":"https://www.notion.so/product/ai"},{"name":"Monday AI","website":"https://monday.com/ai"},{"name":"Asana AI","website":"https://asana.com/ai"},{"name":"Google Gemini","website":"https://gemini.google.com"}]},{"name":"Project Management Software","category":"Office & Operation","sub":"Software Subscription","est":30,"role":"software","desc":"","vendors":[{"name":"ClickUp","website":"https://clickup.com"},{"name":"Asana","website":"https://asana.com"},{"name":"Trello","website":"https://trello.com"},{"name":"Monday.com","website":"https://monday.com"}]},{"name":"Email / Newsletter","category":"Office & Operation","sub":"Marketing","est":30,"role":"marketing","desc":"","vendors":[{"name":"Beehiiv","website":"https://www.beehiiv.com"},{"name":"Brevo","website":"https://www.brevo.com"},{"name":"GetResponse","website":"https://www.getresponse.com"},{"name":"MailerLite","website":"https://www.mailerlite.com"},{"name":"Substack","website":"https://substack.com"}]},{"name":"Email Marketing Tools","category":"Office & Operation","sub":"Marketing","est":50,"role":"marketing","desc":"","vendors":[{"name":"GetResponse","website":"https://www.getresponse.com"},{"name":"Mailchimp","website":"https://mailchimp.com"},{"name":"Klaviyo","website":"https://www.klaviyo.com"},{"name":"ConvertKit","website":"https://convertkit.com"},{"name":"Constant Contact","website":"https://www.constantcontact.com"},{"name":"Mailchimp","website":"https://mailchimp.com"},{"name":"Substack","website":"https://substack.com"}]},{"name":"Graphic Design","category":"Office & Operation","sub":"Marketing","est":600,"role":"marketing","desc":"","vendors":[{"name":"Adobe Express","website":"https://www.adobe.com/express/"},{"name":"Canva","website":"https://www.canva.com"}]},{"name":"Influencer Marketing","category":"Office & Operation","sub":"Marketing","est":1000,"role":"marketing","desc":"","vendors":[]},{"name":"Lead Generation Services","category":"Office & Operation","sub":"Marketing","est":500,"role":"marketing","desc":"","vendors":[]},{"name":"Marketing & Content Creation","category":"Office & Operation","sub":"Marketing","est":300,"role":"marketing","desc":"","vendors":[{"name":"ChatGPT","website":"https://chatgpt.com"},{"name":"Descript","website":"https://www.descript.com"},{"name":"Synthesia","website":"https://www.synthesia.io"},{"name":"Copy.ai","website":"https://www.copy.ai"},{"name":"Midjourney","website":"https://www.midjourney.com"},{"name":"DALL·E","website":"https://openai.com/dall-e"},{"name":"Jasper AI","website":"https://www.jasper.ai"},{"name":"Surfer SEO","website":"https://surferseo.com"},{"name":"Pictory","website":"https://pictory.ai"},{"name":"ElevenLabs","website":"https://elevenlabs.io"},{"name":"Grammarly","website":"https://www.grammarly.com"},{"name":"Canva AI","website":"https://www.canva.com/ai-image-generator/"}]},{"name":"Photography","category":"Office & Operation","sub":"Marketing","est":500,"role":"marketing","desc":"","vendors":[]},{"name":"Public Relations","category":"Office & Operation","sub":"Marketing","est":2000,"role":"marketing","desc":"","vendors":[]},{"name":"Search Engine Marketing","category":"Office & Operation","sub":"Marketing","est":600,"role":"marketing","desc":"","vendors":[]},{"name":"Seo Services","category":"Office & Operation","sub":"Marketing","est":800,"role":"marketing","desc":"","vendors":[{"name":"Surfer SEO","website":"https://surferseo.com"}]},{"name":"Video Production","category":"Office & Operation","sub":"Marketing","est":1500,"role":"marketing","desc":"","vendors":[]},{"name":"Equipment Purchases","category":"Office & Operation","sub":"Office Equipment","est":1800,"role":"equipment","desc":"","vendors":[]},{"name":"Office Furniture","category":"Office & Operation","sub":"Office Equipment","est":1000,"role":"equipment","desc":"","vendors":[]},{"name":"Industry Association Dues","category":"Office & Operation","sub":"Professional Fees","est":200,"role":"software","desc":"","vendors":[]},{"name":"Membership Fees","category":"Office & Operation","sub":"Professional Fees","est":150,"role":"software","desc":"","vendors":[]},{"name":"Internet Service","category":"Office & Operation","sub":"Internet","est":100,"role":"software","desc":"","vendors":[{"name":"Cox Business","website":"https://www.cox.com/business.html"},{"name":"Verizon Business","website":"https://www.verizon.com/business"},{"name":"AT&T Business","website":"https://www.business.att.com"}]},{"name":"Inventory Software","category":"Office & Operation","sub":"Inventory","est":60,"role":"inventory","desc":"","vendors":[{"name":"Cin7","website":"https://www.cin7.com"},{"name":"Fishbowl Inventory","website":"https://www.fishbowlinventory.com"},{"name":"Zoho Inventory","website":"https://www.zoho.com/us/inventory/"}]},{"name":"Inventory Storage","category":"Office & Operation","sub":"Inventory","est":350,"role":"inventory","desc":"","vendors":[]},{"name":"Product Inventory Purchases","category":"Office & Operation","sub":"Inventory","est":2500,"role":"inventory","desc":"","vendors":[]},{"name":"Raw Materials","category":"Office & Operation","sub":"Inventory","est":1200,"role":"inventory","desc":"","vendors":[]},{"name":"Misc Business Expenses","category":"Office & Operation","sub":"Miscellaneous","est":200,"role":"operating","desc":"","vendors":[]},{"name":"Office Supplies","category":"Office & Operation","sub":"Office Supplies","est":150,"role":"inventory","desc":"","vendors":[]},{"name":"Packaging Materials","category":"Office & Operation","sub":"Shipping & Logistics","est":200,"role":"vehicle","desc":"","vendors":[]},{"name":"Shipping Costs","category":"Office & Operation","sub":"Shipping & Logistics","est":175,"role":"vehicle","desc":"","vendors":[]},{"name":"Shipping/Freight Services","category":"Office & Operation","sub":"Shipping & Logistics","est":300,"role":"vehicle","desc":"","vendors":[]},{"name":"Warehouse Storage","category":"Office & Operation","sub":"Shipping & Logistics","est":500,"role":"vehicle","desc":"","vendors":[]},{"name":"Phone Service","category":"Office & Operation","sub":"Telephone","est":80,"role":"software","desc":"Collaboration platform for chat, meetings, and file sharing.","vendors":[{"name":"Microsoft Teams","website":"https://www.microsoft.com/teams"},{"name":"Slack","website":"https://slack.com"}]},{"name":"Video Conferencing","category":"Office & Operation","sub":"Telephone","est":25,"role":"software","desc":"Video conferencing software used for meetings, webinars, and remote work.","vendors":[{"name":"Zoom","website":"https://zoom.us"},{"name":"Google Meet","website":"https://meet.google.com"}]},{"name":"Repairs","category":"Office & Operation","sub":"Repairs & Maintenance","est":250,"role":"operating","desc":"","vendors":[]},{"name":"Waste Disposal","category":"Office & Operation","sub":"Repairs & Maintenance","est":75,"role":"operating","desc":"","vendors":[]},{"name":"Social Media Advertising","category":"Office & Operation","sub":"Social Media Advertising","est":350,"role":"marketing","desc":"","vendors":[]},{"name":"Utilities","category":"Office & Operation","sub":"Utilities","est":200,"role":"operating","desc":"","vendors":[]},{"name":"Advertising","category":"Sales Strategies","sub":"Marketing","est":600,"role":"marketing","desc":"","vendors":[{"name":"Yellow Pages","website":"https://www.yellowpages.com"},{"name":"Manta","website":"https://www.manta.com"},{"name":"Outbrain","website":"https://www.outbrain.com"},{"name":"Taboola","website":"https://www.taboola.com"},{"name":"Google Display Network","website":"https://ads.google.com"},{"name":"Mailchimp Ads","website":"https://mailchimp.com"},{"name":"ZipRecruiter","website":"https://www.ziprecruiter.com"},{"name":"Spotify Ads","website":"https://ads.spotify.com"}]},{"name":"Branding Development","category":"Sales Strategies","sub":"Marketing","est":1800,"role":"marketing","desc":"","vendors":[]},{"name":"Ecommerce & Online Stores","category":"Sales Strategies","sub":"Marketing","est":400,"role":"marketing","desc":"","vendors":[{"name":"Shopify Magic","website":"https://www.shopify.com/magic"},{"name":"Etsy Ads","website":"https://www.etsy.com/sell"},{"name":"eBay Ads","website":"https://www.ebay.com/sellercenter"},{"name":"Amazon Ads","website":"https://advertising.amazon.com"},{"name":"Walmart Connect","website":"https://www.walmartconnect.com"},{"name":"BigCommerce","website":"https://www.bigcommerce.com"}]},{"name":"Streaming Advertising","category":"Sales Strategies","sub":"Marketing","est":500,"role":"marketing","desc":"","vendors":[{"name":"Roku Ads","website":"https://advertising.roku.com"},{"name":"Hulu Ads","website":"https://advertising.hulu.com"}]},{"name":"Video Advertising","category":"Sales Strategies","sub":"Marketing","est":450,"role":"marketing","desc":"Video Ad's - B2B video audiences","vendors":[{"name":"Vimeo Advertising","website":"https://vimeo.com"},{"name":"YouTube Ads","website":"https://ads.google.com"}]},{"name":"E-Commers","category":"Sales Strategies","sub":"Software Subscription","est":80,"role":"software","desc":"Platform used to create online stores and manage product sales.","vendors":[{"name":"Shopify","website":"https://www.shopify.com"}]},{"name":"Sales Software","category":"Sales Strategies","sub":"Software Subscription","est":80,"role":"software","desc":"","vendors":[]},{"name":"Sales Commissions","category":"Sales Strategies","sub":"Salaries & Wages","est":600,"role":"payroll","desc":"","vendors":[]},{"name":"Advertising Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Affiliate Marketing Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Brand Collaboration Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Buy-Sell Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Copyright Assignment Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Data Processing Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Employee Confidentiality Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Employment Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Equity Investment Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Indemnification Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Influencer Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Investor Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Legal Advisory","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Liability Waiver","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Licensing Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Loan Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Non-Compete Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Non-Disclosure Agreement (Nda)","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Non-Solicitation Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Product Purchase Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Retail Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Revenue Sharing Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Saas Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Sales Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Service Or Product Contracts","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Settlement Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Software License Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Sponsorship Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Trademark License Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Website Privacy Policy","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Website Terms Of Service","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Wholesale Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Work-For-Hire Agreement","category":"Contracts","sub":"Legal Documents","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Asset Purchase Agreement","category":"Contracts","sub":"Business Exit","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Business Sale Agreement","category":"Contracts","sub":"Business Exit","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Client Services Contract","category":"Contracts","sub":"Business Operations","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Consulting Agreement","category":"Contracts","sub":"Business Operations","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Independent Contractor Agreement","category":"Contracts","sub":"Business Operations","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Master Services Agreement (Msa)","category":"Contracts","sub":"Business Operations","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Service Agreement","category":"Contracts","sub":"Business Operations","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Statement Of Work (Sow)","category":"Contracts","sub":"Business Operations","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Commercial Lease Agreement","category":"Contracts","sub":"Real Estate","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Property Management Agreement","category":"Contracts","sub":"Real Estate","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Sublease Agreement","category":"Contracts","sub":"Real Estate","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Distribution Agreement","category":"Contracts","sub":"Vendors & Suppliers","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Manufacturing Agreement","category":"Contracts","sub":"Vendors & Suppliers","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Purchase Agreement","category":"Contracts","sub":"Vendors & Suppliers","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Supplier Agreement","category":"Contracts","sub":"Vendors & Suppliers","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Vendor Agreement","category":"Contracts","sub":"Vendors & Suppliers","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Founders Agreement","category":"Contracts","sub":"Business Formation","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Partnership Agreement","category":"Contracts","sub":"Business Formation","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Shareholder Agreement","category":"Contracts","sub":"Business Formation","est":0,"role":"legal","desc":"","vendors":[]},{"name":"City Or County License","category":"Legal & Registration","sub":"Licenses & Permites","est":100,"role":"legal","desc":"","vendors":[]},{"name":"Irs Business Tax Id","category":"Legal & Registration","sub":"Licenses & Permites","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Llc Ownership Structure","category":"Legal & Registration","sub":"Licenses & Permites","est":300,"role":"legal","desc":"","vendors":[]},{"name":"Llc, Sole Proprietor, Corporation","category":"Legal & Registration","sub":"Licenses & Permites","est":200,"role":"legal","desc":"","vendors":[]},{"name":"File With State","category":"Legal & Registration","sub":"Registration","est":150,"role":"legal","desc":"","vendors":[]},{"name":"Protect Brand","category":"Legal & Registration","sub":"Legal Protection","est":350,"role":"legal","desc":"","vendors":[]},{"name":"Sales Tax Permit","category":"Legal & Registration","sub":"Sales Tax","est":0,"role":"legal","desc":"","vendors":[]},{"name":"Contractor Payments","category":"Human Resource Strategy","sub":"Salaries & Wages","est":2000,"role":"payroll","desc":"","vendors":[]},{"name":"Employee Salaries","category":"Human Resource Strategy","sub":"Salaries & Wages","est":4500,"role":"payroll","desc":"Payroll and HR management software used by businesses of all sizes.","vendors":[{"name":"ADP","website":"https://www.adp.com"},{"name":"Gusto","website":"https://gusto.com"},{"name":"Paychex","website":"https://www.paychex.com"},{"name":"Square Payroll","website":"https://squareup.com/payroll"}]},{"name":"Employee Benefits","category":"Human Resource Strategy","sub":"Human Resources","est":900,"role":"payroll","desc":"","vendors":[]},{"name":"Recruiting Costs","category":"Human Resource Strategy","sub":"Human Resources","est":1200,"role":"payroll","desc":"","vendors":[]},{"name":"Training And Development","category":"Human Resource Strategy","sub":"Human Resources","est":500,"role":"payroll","desc":"","vendors":[]},{"name":"Payroll Taxes","category":"Human Resource Strategy","sub":"Payroll Taxes","est":600,"role":"payroll","desc":"","vendors":[]},{"name":"Office Mortgage/Rent","category":"Location & Infrastructure","sub":"Retail Space","est":1500,"role":"operating","desc":"","vendors":[]}],
-  nonFinancial: [{"name":"Accounting Policies","category":"Financial Planning","sub":"Accouting Department"},{"name":"Accounts Payable Procedure","category":"Financial Planning","sub":"Accouting Department"},{"name":"Accounts Receivable Procedure","category":"Financial Planning","sub":"Accouting Department"},{"name":"Purchasing Policy","category":"Financial Planning","sub":"Accouting Department"},{"name":"Annual Budget","category":"Financial Planning","sub":"Accouting Department"},{"name":"Audit Procedures","category":"Financial Planning","sub":"Accouting Department"},{"name":"Budget Process","category":"Financial Planning","sub":"Accouting Department"},{"name":"Capital Expenditure Policy","category":"Financial Planning","sub":"Accouting Department"},{"name":"Cash Flow Forecast","category":"Financial Planning","sub":"Accouting Department"},{"name":"Credit Card Policy","category":"Financial Planning","sub":"Accouting Department"},{"name":"Expense Reimbursement Policy","category":"Financial Planning","sub":"Accouting Department"},{"name":"Financial Reporting Package","category":"Financial Planning","sub":"Accouting Department"},{"name":"Fixed Asset Policy","category":"Financial Planning","sub":"Accouting Department"},{"name":"Internal Controls Documentation","category":"Financial Planning","sub":"Accouting Department"},{"name":"Payroll Procedures","category":"Financial Planning","sub":"Accouting Department"},{"name":"Revenue Recognition Policy","category":"Financial Planning","sub":"Accouting Department"},{"name":"Tax Compliance Procedures","category":"Financial Planning","sub":"Accouting Department"},{"name":"Budget","category":"Financial Planning","sub":"Financial Planning"},{"name":"Amazon Business - General Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Best Buy Business - Electronics","category":"Financial Planning","sub":"Business Credit"},{"name":"Business T-Shirt Club - Custom Apparel","category":"Financial Planning","sub":"Business Credit"},{"name":"Coast to Coast Office Supply - Office Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Creative Analytics - Marketing Services","category":"Financial Planning","sub":"Business Credit"},{"name":"Crown Office Supplies - Office Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Fastenal - Industrial Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"FedEx Business Account - Shipping","category":"Financial Planning","sub":"Business Credit"},{"name":"Gempler’s - Farm & Outdoor Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Grainger - Industrial & Maintenance","category":"Financial Planning","sub":"Business Credit"},{"name":"Home Depot Commercial Account - Construction & Maintenance","category":"Financial Planning","sub":"Business Credit"},{"name":"JJ Gold - Wholesale Jewelry","category":"Financial Planning","sub":"Business Credit"},{"name":"Lowe’s Business Account - Construction & Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Maverick Office Supplies - Office Products","category":"Financial Planning","sub":"Business Credit"},{"name":"MSC Industrial Supply - Industrial Equipment","category":"Financial Planning","sub":"Business Credit"},{"name":"Namynot - Business Services","category":"Financial Planning","sub":"Business Credit"},{"name":"Nav Business Boost - Credit Monitoring & Tradelines","category":"Financial Planning","sub":"Business Credit"},{"name":"Newegg Business - Electronics & IT","category":"Financial Planning","sub":"Business Credit"},{"name":"Office Depot Business - Office Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Ohana Office Products - Office Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Opus Virtual Offices - Virtual Office Services","category":"Financial Planning","sub":"Business Credit"},{"name":"Quill - Office Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Shirtsy - Custom Apparel","category":"Financial Planning","sub":"Business Credit"},{"name":"Staples Business Advantage - Office Supplies","category":"Financial Planning","sub":"Business Credit"},{"name":"Strategic Network Solutions - IT Equipment & Services","category":"Financial Planning","sub":"Business Credit"},{"name":"Summa Office Supplies - Office Products","category":"Financial Planning","sub":"Business Credit"},{"name":"SupplyWorks - Maintenance & Janitorial","category":"Financial Planning","sub":"Business Credit"},{"name":"The CEO Creative - Branding & Web Services","category":"Financial Planning","sub":"Business Credit"},{"name":"Uline - Shipping & Packaging","category":"Financial Planning","sub":"Business Credit"},{"name":"UPS Business Account - Shipping","category":"Financial Planning","sub":"Business Credit"},{"name":"How business makes money","category":"Financial Planning","sub":"Revenue streams"},{"name":"Business Continuity Plan","category":"Legal & Compliance","sub":"Risk Management"},{"name":"Crisis Communication Plan","category":"Legal & Compliance","sub":"Risk Management"},{"name":"Cybersecurity Risk Assessment","category":"Legal & Compliance","sub":"Risk Management"},{"name":"Emergency Action Plan","category":"Legal & Compliance","sub":"Risk Management"},{"name":"Fraud Prevention Procedures","category":"Legal & Compliance","sub":"Risk Management"},{"name":"Insurance Coverage Review","category":"Legal & Compliance","sub":"Risk Management"},{"name":"Risk Register","category":"Legal & Compliance","sub":"Risk Management"},{"name":"Vendor Risk Assessment","category":"Legal & Compliance","sub":"Risk Management"},{"name":"Workplace Safety Program","category":"Legal & Compliance","sub":"Risk Management"},{"name":"NDA Template","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Privacy Policy","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Service Agreement Template","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Compliance Program","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Employment Agreements","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Independent Contractor Agreements","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Insurance Documentation","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Intellectual Property Policy","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Licensing Documentation","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Master Service Agreements","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Regulatory Compliance Procedures","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Terms & Conditions","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Vendor Contracts","category":"Legal & Compliance","sub":"Legal & Compliance"},{"name":"Legal & Registration","category":"Legal & Compliance","sub":"Compliance"},{"name":"Business Plan","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Organizational Chart","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Key Performance Indicators","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Strategic Plan","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Annual Business Goals","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Board Meeting Minutes","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Core Values","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Corporate Bylaws","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Mission Statement","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Ownership Agreement / Operating Agreement","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Risk Management Plan","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Succession Plan","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Vision Statement","category":"Entrepreneur Mindset","sub":"Governance & Business Documents"},{"name":"Code of Conduct","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Employee Handbook","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Employee Onboarding Process","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Job Descriptions","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"New Hire Checklist","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Anti-Harassment Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Attendance Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Career Development Plan","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Compensation Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Confidentiality Agreement","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Conflict of Interest Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Drug & Alcohol Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Employee Evaluation Forms","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Employee Onboarding Program","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Employee Policies & Procedures Manual","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Employee Training Program","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Equal Employment Opportunity Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Leave of Absence Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Performance Review Process","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Progressive Discipline Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Promotion Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Remote Work Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Travel & Expense Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Vacation Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Whistleblower Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Workplace Safety Policy","category":"Systems & Operations","sub":"Human Resources (HR)"},{"name":"Cybersecurity Policy","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Password Policy","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Acceptable Use Policy","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Access Control Procedures","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"AI Usage Policy","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Data Backup Procedures","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Data Privacy Policy","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Disaster Recovery Procedures","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Hardware Inventory","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Incident Response Procedures","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"IT Policies","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Mobile Device Policy","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Software Management Procedures","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Technology Roadmap","category":"Systems & Operations","sub":"Information Technology (IT)"},{"name":"Standard Operating Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Vendor Management Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Asset Management Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Department Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Disaster Recovery Plan","category":"Systems & Operations","sub":"Operations"},{"name":"Document Control Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Equipment Maintenance Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Incident Response Plan","category":"Systems & Operations","sub":"Operations"},{"name":"Inventory Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Operations Manual","category":"Systems & Operations","sub":"Operations"},{"name":"Process Documentation","category":"Systems & Operations","sub":"Operations"},{"name":"Procurement Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Quality Assurance Program","category":"Systems & Operations","sub":"Operations"},{"name":"Quality Control Procedures","category":"Systems & Operations","sub":"Operations"},{"name":"Record Retention Policy","category":"Systems & Operations","sub":"Operations"},{"name":"Workflow Diagrams","category":"Systems & Operations","sub":"Operations"},{"name":"Asana AI","category":"Systems & Operations","sub":"Project Management & Productivity"},{"name":"Google Gemini","category":"Systems & Operations","sub":"Project Management & Productivity"},{"name":"Microsoft Copilot","category":"Systems & Operations","sub":"Project Management & Productivity"},{"name":"Monday AI","category":"Systems & Operations","sub":"Project Management & Productivity"},{"name":"Notion AI","category":"Systems & Operations","sub":"Project Management & Productivity"},{"name":"Operation","category":"Systems & Operations","sub":"System & Operation"},{"name":"Customer Service Standards","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Sales Process","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Complaint Resolution Process","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Contract Templates","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Conversion","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"CRM Procedures","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Customer Onboarding Process","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Customer Retention Program","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Customer Satisfaction Surveys","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Follow-Up Procedures","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Lead Qualification Process","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Pricing Strategy","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Proposal Templates","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"QR Invoice and Receipts","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Refer & Reward Program","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Referral Link on Website","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Referral Program","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Sales Funnels","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Sales Playbook","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Text Referral Template","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Trusted Referral Program","category":"Sales Strategies","sub":"Sales & Customer Service"},{"name":"Paid Ads","category":"Sales Strategies","sub":"Paid Ads"},{"name":"Advertising Guidelines","category":"Marketing Strategy","sub":"Marketing"},{"name":"Brand Awarness","category":"Marketing Strategy","sub":"Marketing"},{"name":"Brand Guidelines","category":"Marketing Strategy","sub":"Marketing"},{"name":"Content Marketing Strategy","category":"Marketing Strategy","sub":"Marketing"},{"name":"Email Marketing Procedures","category":"Marketing Strategy","sub":"Marketing"},{"name":"Lead Generation Strategy","category":"Marketing Strategy","sub":"Marketing"},{"name":"Marketing Calendar","category":"Marketing Strategy","sub":"Marketing"},{"name":"Marketing Plan","category":"Marketing Strategy","sub":"Marketing"},{"name":"Public Relations Procedures","category":"Marketing Strategy","sub":"Marketing"},{"name":"Social Media Policy","category":"Marketing Strategy","sub":"Marketing"},{"name":"Website Management Procedures","category":"Marketing Strategy","sub":"Marketing"},{"name":"Apple Map","category":"Marketing Strategy","sub":"Online Presents"},{"name":"Bing","category":"Marketing Strategy","sub":"Online Presents"},{"name":"Chamber of Commerce","category":"Marketing Strategy","sub":"Online Presents"},{"name":"Google","category":"Marketing Strategy","sub":"Online Presents"},{"name":"NextDoor","category":"Marketing Strategy","sub":"Online Presents"},{"name":"Yelp","category":"Marketing Strategy","sub":"Online Presents"},{"name":"Beehiiv","category":"Marketing Strategy","sub":"Email / Newsletter"},{"name":"Brevo","category":"Marketing Strategy","sub":"Email / Newsletter"},{"name":"Constant Contact","category":"Marketing Strategy","sub":"Email / Newsletter"},{"name":"ConvertKit","category":"Marketing Strategy","sub":"Email / Newsletter"},{"name":"GetResponse","category":"Marketing Strategy","sub":"Email / Newsletter"},{"name":"Mailchimp","category":"Marketing Strategy","sub":"Email / Newsletter"},{"name":"MailerLite","category":"Marketing Strategy","sub":"Email / Newsletter"},{"name":"Substack","category":"Marketing Strategy","sub":"Email / Newsletter"},{"name":"Content / Blog","category":"Marketing Strategy","sub":"Marketing & Content Creation"},{"name":"Facebook","category":"Marketing Strategy","sub":"Social media platform"},{"name":"Instagram","category":"Marketing Strategy","sub":"Social media platform"},{"name":"LinkedIn","category":"Marketing Strategy","sub":"Social media platform"},{"name":"TikTok","category":"Marketing Strategy","sub":"Social media platform"},{"name":"Twitter / X","category":"Marketing Strategy","sub":"Social media platform"},{"name":"YouTube","category":"Marketing Strategy","sub":"Social media platform"},{"name":"Pinterest","category":"Marketing Strategy","sub":"A visual discovery platform"},{"name":"Age, income, interests","category":"Market Research","sub":"Customer"},{"name":"Business Model Design","category":"Market Research","sub":"Industry"},{"name":"Competitor Analysis","category":"Market Research","sub":"Industry"},{"name":"Market Size","category":"Market Research","sub":"Industry"},{"name":"Value Proposition","category":"Market Research","sub":"Industry"},{"name":"Growing or declining","category":"Market Research","sub":"Trends"},{"name":"Market average","category":"Market Research","sub":"Pricing"},{"name":"Minimum Viable Product","category":"Market Research","sub":"Product"},{"name":"Problems to solve","category":"Market Research","sub":"Demand"},{"name":"Top competitors","category":"Market Research","sub":"Competition"},{"name":"Brand palette","category":"Branding Strategy","sub":"Brand colors"},{"name":"Brand symbol","category":"Branding Strategy","sub":"Logo design"},{"name":"Confirm availability","category":"Branding Strategy","sub":"Finalize name"},{"name":"Standard fonts","category":"Branding Strategy","sub":"Brand fonts"},{"name":"Business Growth Plan","category":"Growth Strategy","sub":"Sustainably"},{"name":"Long Term Vision","category":"Growth Strategy","sub":"Long-Term Goal"},{"name":"Funding Options","category":"Funding Options","sub":"Financial Planning"},{"name":"Ideal Customer Profile","category":"Customer Research","sub":"Customers"},{"name":"Problem Identification","category":"Customer Research","sub":"Customers"},{"name":"Launch  Plan","category":"Launch Strategy","sub":"Launch Plan"},{"name":"Product/Service List","category":"Product / Service Development","sub":"Product/Service List"}],
-  // role -> keyword matchers used to pick the right account from the live COA
-  roleKeywords: {
-    insurance: ["insurance","bond"],
-    legal: ["licens","permit","legal","registration"],
-    marketing: ["marketing","advertis","social media","campaign"],
-    software: ["software","subscription","technolog"],
-    equipment: ["equipment"],
-    inventory: ["inventor","supplies","supply"],
-    vehicle: ["fuel","mileage","vehicle & "],
-    payroll: ["payroll","wage","salar"],
-    operating: ["miscellaneous","overhead","operating"]
-  },
-  // Resolve a GL number from the active COA for a given role.
-  resolveGL: function(coa, role){
-    if(!coa || !coa.length) return "6000";
-    var kws=(this.roleKeywords[role]||this.roleKeywords.operating);
-    var matches=coa.filter(function(a){ var n=(a.name||"").toLowerCase(); return kws.some(function(k){return n.indexOf(k)>=0;}); });
-    var wantAsset=(role==='equipment'||role==='inventory');
-    var preferred=matches.filter(function(a){ var ty=(a.type||""); return wantAsset ? /asset/i.test(ty) : /expense|cost of goods/i.test(ty); });
-    var pick=preferred[0] || matches[0] || coa.find(function(a){ return /expense/i.test(a.type||""); });
-    return (pick || coa[coa.length-1] || coa[0]).num;
+// @ds-adherence-ignore -- omelette starter scaffold (raw elements/hex/px by design)
+
+/* BEGIN USAGE */
+// tweaks-panel.jsx
+// Reusable Tweaks shell + form-control helpers.
+// Exports (to window): useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSlider,
+//   TweakToggle, TweakRadio, TweakSelect, TweakText, TweakNumber, TweakColor, TweakButton.
+//
+// Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
+// posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
+// individual prototypes don't re-roll it. Ships a consistent set of controls so you
+// don't hand-draw <input type="range">, segmented radios, steppers, etc.
+//
+// Usage (in an HTML file that loads React + Babel):
+//
+//   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+//     "primaryColor": "#D97757",
+//     "palette": ["#D97757", "#29261b", "#f6f4ef"],
+//     "fontSize": 16,
+//     "density": "regular",
+//     "dark": false
+//   }/*EDITMODE-END*/;
+//
+//   function App() {
+//     const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+//     return (
+//       <div style={{ fontSize: t.fontSize, color: t.primaryColor }}>
+//         Hello
+//         <TweaksPanel>
+//           <TweakSection label="Typography" />
+//           <TweakSlider label="Font size" value={t.fontSize} min={10} max={32} unit="px"
+//                        onChange={(v) => setTweak('fontSize', v)} />
+//           <TweakRadio  label="Density" value={t.density}
+//                        options={['compact', 'regular', 'comfy']}
+//                        onChange={(v) => setTweak('density', v)} />
+//           <TweakSection label="Theme" />
+//           <TweakColor  label="Primary" value={t.primaryColor}
+//                        options={['#D97757', '#2A6FDB', '#1F8A5B', '#7A5AE0']}
+//                        onChange={(v) => setTweak('primaryColor', v)} />
+//           <TweakColor  label="Palette" value={t.palette}
+//                        options={[['#D97757', '#29261b', '#f6f4ef'],
+//                                  ['#475569', '#0f172a', '#f1f5f9']]}
+//                        onChange={(v) => setTweak('palette', v)} />
+//           <TweakToggle label="Dark mode" value={t.dark}
+//                        onChange={(v) => setTweak('dark', v)} />
+//         </TweaksPanel>
+//       </div>
+//     );
+//   }
+//
+// TweakRadio is the segmented control for 2–3 short options (auto-falls-back to
+// TweakSelect past ~16/~10 chars per label); reach for TweakSelect directly when
+// options are many or long. For color tweaks always curate 3-4 options rather than
+// a free picker; an option can also be a whole 2–5 color palette (the stored value
+// is the array). The Tweak* controls are a floor, not a ceiling — build custom
+// controls inside the panel if a tweak calls for UI they don't cover.
+/* END USAGE */
+// ─────────────────────────────────────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
+
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+
+  .twk-num{display:flex;align-items:center;box-sizing:border-box;min-width:0;height:26px;padding:0 0 0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
+  .twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;
+    user-select:none;padding-right:8px}
+  .twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;
+    outline:none;color:inherit;-moz-appearance:textfield}
+  .twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{
+    -webkit-appearance:none;margin:0}
+  .twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}
+
+  .twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;
+    background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}
+  .twk-btn:hover{background:rgba(0,0,0,.88)}
+  .twk-btn.secondary{background:rgba(0,0,0,.06);color:inherit}
+  .twk-btn.secondary:hover{background:rgba(0,0,0,.1)}
+
+  .twk-swatch{appearance:none;-webkit-appearance:none;width:56px;height:22px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:6px;padding:0;cursor:default;
+    background:transparent;flex-shrink:0}
+  .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+  .twk-swatch::-webkit-color-swatch{border:0;border-radius:5.5px}
+  .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
+
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),
+    0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;
+    display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1;box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i:first-child{box-shadow:none}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+// ── useTweaks ───────────────────────────────────────────────────────────────
+// Single source of truth for tweak values. setTweak persists via the host
+// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
+  // useState-style call doesn't write a "[object Object]" key into the persisted
+  // JSON block.
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    // Same-window signal so in-page listeners (deck-stage rail thumbnails)
+    // can react — the parent message only reaches the host, not peers.
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+// ── TweaksPanel ─────────────────────────────────────────────────────────────
+// Floating shell. Registers the protocol listener BEFORE announcing
+// availability — if the announce ran first, the host's activate could land
+// before our handler exists and the toolbar toggle would silently no-op.
+// The close button posts __edit_mode_dismissed so the host's toolbar toggle
+// flips off in lockstep; the host echoes __deactivate_edit_mode back which
+// is what actually hides the panel.
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', clampToViewport);
+      return () => window.removeEventListener('resize', clampToViewport);
+    }
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" data-omelette-chrome=""
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">
+          {children}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Layout helpers ──────────────────────────────────────────────────────────
+
+function TweakSection({ label, children }) {
+  return (
+    <>
+      <div className="twk-sect">{label}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl">
+        <span>{label}</span>
+        {value != null && <span className="twk-val">{value}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+              role="switch" aria-checked={!!value}
+              onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  // The active value is read by pointer-move handlers attached for the lifetime
+  // of a drag — ref it so a stale closure doesn't fire onChange for every move.
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+
+  // Segments wrap mid-word once per-segment width runs out. The track is
+  // ~248px (280 panel − 28 body pad − 4 seg pad), each button loses 12px
+  // to its own padding, and 11.5px system-ui averages ~6.3px/char — so 2
+  // options fit ~16 chars each, 3 fit ~10. Past that (or >3 options), fall
+  // back to a dropdown rather than wrap.
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    // <select> emits strings — map back to the original option value so the
+    // fallback stays type-preserving (numbers, booleans) like the segment path.
+    const resolve = (s) => {
+      const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === s);
+      return m === undefined ? s : typeof m === 'object' ? m.value : m;
+    };
+    return <TweakSelect label={label} value={value} options={options}
+                        onChange={(s) => onChange(resolve(s))} />;
   }
-};
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const inner = r.width - 4;
+    const i = Math.floor(((clientX - r.left - 2) / inner) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => {
+      if (!trackRef.current) return;
+      const v = segAt(ev.clientX);
+      if (v !== valueRef.current) onChange(v);
+    };
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown}
+           className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb"
+             style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
+                      width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => {
+          const v = typeof o === 'object' ? o.value : o;
+          const l = typeof o === 'object' ? o.label : o;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </TweakRow>
+  );
+}
+
+function TweakText({ label, value, placeholder, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <input className="twk-field" type="text" value={value} placeholder={placeholder}
+             onChange={(e) => onChange(e.target.value)} />
+    </TweakRow>
+  );
+}
+
+function TweakNumber({ label, value, min, max, step = 1, unit = '', onChange }) {
+  const clamp = (n) => {
+    if (min != null && n < min) return min;
+    if (max != null && n > max) return max;
+    return n;
+  };
+  const startRef = React.useRef({ x: 0, val: 0 });
+  const onScrubStart = (e) => {
+    e.preventDefault();
+    startRef.current = { x: e.clientX, val: value };
+    const decimals = (String(step).split('.')[1] || '').length;
+    const move = (ev) => {
+      const dx = ev.clientX - startRef.current.x;
+      const raw = startRef.current.val + dx * step;
+      const snapped = Math.round(raw / step) * step;
+      onChange(clamp(Number(snapped.toFixed(decimals))));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <div className="twk-num">
+      <span className="twk-num-lbl" onPointerDown={onScrubStart}>{label}</span>
+      <input type="number" value={value} min={min} max={max} step={step}
+             onChange={(e) => onChange(clamp(Number(e.target.value)))} />
+      {unit && <span className="twk-num-unit">{unit}</span>}
+    </div>
+  );
+}
+
+// Relative-luminance contrast pick — checkmarks drawn over a swatch need to
+// read on both #111 and #fafafa without per-option configuration. Hex input
+// only (#rgb / #rrggbb); named or rgb()/hsl() colors fall through to "light".
+function __twkIsLight(hex) {
+  const h = String(hex).replace('#', '');
+  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h.padEnd(6, '0');
+  const n = parseInt(x.slice(0, 6), 16);
+  if (Number.isNaN(n)) return true;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return r * 299 + g * 587 + b * 114 > 148000;
+}
+
+const __TwkCheck = ({ light }) => (
+  <svg viewBox="0 0 14 14" aria-hidden="true">
+    <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2"
+          strokeLinecap="round" strokeLinejoin="round"
+          stroke={light ? 'rgba(0,0,0,.78)' : '#fff'} />
+  </svg>
+);
+
+// TweakColor — curated color/palette picker. Each option is either a single
+// hex string or an array of 1-5 hex strings; the card adapts — a lone color
+// renders solid, a palette renders colors[0] as the hero (left ~2/3) with the
+// rest stacked in a sharp column on the right. onChange emits the
+// option in the shape it was passed (string stays string, array stays array).
+// Without options it falls back to the native color input for back-compat.
+function TweakColor({ label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" className="twk-swatch" value={value}
+               onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  // Native <input type=color> emits lowercase hex per the HTML spec, so
+  // compare case-insensitively. String() guards JSON.stringify(undefined),
+  // which returns the primitive undefined (no .toLowerCase).
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <TweakRow label={label}>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero, ...rest] = colors;
+          const sup = rest.slice(0, 4);
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" role="radio"
+                    aria-checked={on} data-on={on ? '1' : '0'}
+                    aria-label={colors.join(', ')} title={colors.join(' · ')}
+                    style={{ background: hero }}
+                    onClick={() => onChange(o)}>
+              {sup.length > 0 && (
+                <span>
+                  {sup.map((c, j) => <i key={j} style={{ background: c }} />)}
+                </span>
+              )}
+              {on && <__TwkCheck light={__twkIsLight(hero)} />}
+            </button>
+          );
+        })}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakButton({ label, onClick, secondary = false }) {
+  return (
+    <button type="button" className={secondary ? 'twk-btn secondary' : 'twk-btn'}
+            onClick={onClick}>{label}</button>
+  );
+}
+
+Object.assign(window, {
+  useTweaks, TweaksPanel, TweakSection, TweakRow,
+  TweakSlider, TweakToggle, TweakRadio, TweakSelect,
+  TweakText, TweakNumber, TweakColor, TweakButton,
+});

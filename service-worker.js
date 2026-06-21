@@ -1,13 +1,13 @@
 /* StartWise service worker.
    Network-first for the page + app code (so updates always show when online),
    cache-first for static assets (fonts, images). Falls back to cache offline. */
-const CACHE = "startwise-v4";
+const CACHE = "startwise-v5";
 const CORE = [
   "StartWise.html",
   "manifest.webmanifest",
-  "icons/icon-192.png",
-  "icons/icon-512.png",
-  "icons/apple-touch-icon.png",
+  "icon-192.png",
+  "icon-512.png",
+  "apple-touch-icon.png",
 ];
 
 self.addEventListener("install", (e) => {

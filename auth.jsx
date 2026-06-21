@@ -1,204 +1,177 @@
-/* StartWise — root app: state, routing, tweaks, cross-screen flows */
-const { useState: useApp, useMemo: useAppM, useRef } = React;
-const SWa = window.StartWiseData;
+/* StartWise — Auth: login + onboarding */
+const { useState: useAuthState } = React;
+const DSauth = window.AcrossTheTableDesignSystem_520822;
 
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "accent": "#246049",
-  "density": "comfortable"
-}/*EDITMODE-END*/;
-
-const ACCENTS = ["#246049", "#1B344F", "#C8962E", "#34597A"];
-
-const ROUTE_TITLES = {
-  dashboard: "Dashboard", plan: "12-Week Launch Plan", budget: "Budget Planner",
-  products: "Products & Services", revenue: "Revenue Planner", cashflow: "Cash Flow Planner",
-  reports: "Reports", runbook: "Vendors & RunBook", coa: "Chart of Accounts",
-  business: "Business Info", knowledge: "Knowledge Center", legal: "Legal & Compliance",
-};
-
-function expenseToTask(e, i) {
-  const wk = Math.min(12, Math.max(1, +e.week || 1));
-  return { id: "g" + i + "_" + Math.floor(Math.random() * 9999), name: e.name, desc: e.desc || "", type: "Financial", category: e.category || "Equipment & Assets", priority: e.priority || "Medium", est: +e.est || 0, actual: 0, week: wk, due: SWa.due(wk), status: "To Do", gl: String(e.gl || ""), vendorType: e.vendorType || "" };
-}
-
-function makeVendor(t) {
-  return {
-    id: "v" + Date.now() + Math.floor(Math.random() * 999),
-    taskName: t.name, vendorName: t.vendor || ("New vendor — " + t.name), category: "Supplier", status: "Pending",
-    contact: "", phone: "", email: "",
-    website: t.vendorWebsite || "", service: t.name, contractStart: new Date().toISOString().slice(0, 10),
-    renewal: "—", lastOrder: new Date().toISOString().slice(0, 10), nextOrder: "—",
-    terms: t.vendorType || "", cost: +t.actual || +t.est || 0, rating: 0,
-    gl: t.gl, notes: t.vendor ? ("Chosen from your vendor list when this task was completed. Add contact details.") : "Auto-created when this financial task was marked Done. Add the vendor details.",
-  };
-}
-
-function Tour({ onClose }) {
-  const steps = [
-    ["Navigate", "Use the left sidebar to move between your dashboard, planner, budget, reports, RunBook, and accounts."],
-    ["Dashboard", "Your live launch scorecard — tasks, spend, and budget health update as you work."],
-    ["Account setup", "Set your business profile and funding in Business Info. Identity locks after 15 days."],
-    ["Budget setup", "Funding sources roll up to your total startup budget and runway."],
-    ["12-week planner", "Work week by week. Check off tasks and move them as plans change."],
-    ["Reports & resources", "Track budget health and tap the Knowledge Center for AI prompts and the blueprint series."],
-  ];
-  const [i, setI] = useApp(0);
+function AuthShell({ children, wide }) {
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(14,27,44,0.5)", zIndex: 70, display: "grid", placeItems: "center", padding: 20 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 460, background: "#fff", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card-hover)", padding: 28 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <span style={{ font: "600 10px var(--font-mono)", letterSpacing: "0.12em", color: "var(--gold-700)" }}>TOUR · {i + 1} OF {steps.length}</span>
-          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--ink-400)" }}><Icon name="x" size={18} /></button>
+    <div style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr", placeItems: "center", background: "var(--cream-50)", padding: 24 }}>
+      <div style={{ width: "100%", maxWidth: wide ? 720 : 440 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 22 }}>
+          <img src={(window.__resources && window.__resources.logo) || "assets/logo.png"} alt="Across the Table" style={{ width: 190, display: "block" }} />
+          <div style={{ font: "800 24px var(--font-display)", letterSpacing: "-0.02em", color: "var(--navy-700)", marginTop: 8 }}>StartWise</div>
+          <div style={{ font: "500 10px var(--font-mono)", letterSpacing: "0.16em", color: "var(--ink-500)", marginTop: 4 }}>YOUR 12-WEEK BUSINESS LAUNCH PLANNER</div>
         </div>
-        <h2 style={{ font: "800 23px var(--font-display)", margin: "0 0 8px", color: "var(--ink-900)" }}>{steps[i][0]}</h2>
-        <p style={{ fontSize: 14.5, color: "var(--ink-600)", lineHeight: 1.55, margin: "0 0 22px" }}>{steps[i][1]}</p>
-        <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
-          {steps.map((_, k) => <div key={k} style={{ flex: 1, height: 4, borderRadius: 999, background: k <= i ? "var(--forest-600)" : "var(--cream-100)" }}></div>)}
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <button onClick={() => (i === 0 ? onClose() : setI(i - 1))} style={btnGhost}>{i === 0 ? "Skip" : "Back"}</button>
-          <button onClick={() => (i === steps.length - 1 ? onClose() : setI(i + 1))} style={btnPrimary}>{i === steps.length - 1 ? "Done" : "Next"} <Icon name="arrowRight" size={15} /></button>
+        {children}
+        <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: "var(--ink-400)" }}>
+          Across the Table · acrossthetable.biz
         </div>
       </div>
     </div>
   );
 }
 
-function App() {
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [phase, setPhase] = useApp("login"); // login | onboarding | app
-  const [route, setRoute] = useApp("dashboard");
-  const [tasks, setTasks] = useApp(SWa.tasks);
-  const [coa, setCoa] = useApp((window.StartWiseSource && window.StartWiseSource.coaMaster) || SWa.coa);
-  const [vendors, setVendors] = useApp(SWa.vendors);
-  const [products, setProducts] = useApp((window.StartWiseBiz && window.StartWiseBiz.products) || []);
-  const [editingProduct, setEditingProduct] = useApp(null);
-  const [business, setBusiness] = useApp(SWa.business);
-  const [funding, setFunding] = useApp(SWa.funding);
-  const [user, setUser] = useApp({ name: "Dana Rivera", role: "Admin" });
-  const [editing, setEditing] = useApp(null);
-  const [library, setLibrary] = useApp(false);
-  const [tour, setTour] = useApp(false);
-  const mobile = useIsMobile();
-  const [navOpen, setNavOpen] = useApp(false);
-
-  const totalBudget = useAppM(() => funding.filter((f) => f.on).reduce((s, f) => s + (+f.amount || 0), 0), [funding]);
-  const actualSpend = useAppM(() => tasks.filter((x) => x.type === "Financial").reduce((s, x) => s + (+x.actual || 0), 0), [tasks]);
-  const startingBalance = Math.max(0, totalBudget - actualSpend);
-
-  const saveProduct = (p) => { setProducts((prev) => (prev.some((x) => x.id === p.id) ? prev.map((x) => (x.id === p.id ? p : x)) : [...prev, p])); setEditingProduct(null); };
-  const deleteProduct = (id) => { setProducts((prev) => prev.filter((x) => x.id !== id)); setEditingProduct(null); };
-
-  const joined = new Date(business.dateJoined);
-  const daysLeft = Math.max(0, 15 - Math.floor((Date.now() - joined.getTime()) / 86400000));
-  const setupAt = new Date(business.setupAt || business.dateJoined);
-  const hoursLeft = Math.max(0, 48 - (Date.now() - setupAt.getTime()) / 3600000);
-
-  // rebuild COA + expenses for a (new) business type within the 48-hour window
-  const rebuildPlan = (plan, patch) => {
-    setCoa(plan.coa);
-    setTasks((prev) => {
-      const nonFin = prev.filter((x) => x.type === "Non-Financial");
-      const fin = plan.expenses.map(expenseToTask);
-      return [...fin, ...nonFin];
-    });
-    setVendors([]);
-    if (patch) setBusiness((b) => ({ ...b, ...patch }));
-  };
-
-  // cross-screen: completing a financial task spins up a RunBook vendor record
-  const applyTasks = (next) => {
-    setTasks((prev) => {
-      const arr = typeof next === "function" ? next(prev) : next;
-      const toAdd = [];
-      arr.forEach((x) => {
-        const was = prev.find((p) => p.id === x.id);
-        if (x.type === "Financial" && x.status === "Completed" && (!was || was.status !== "Completed")) {
-          setVendors((vs) => (vs.some((v) => v.taskName === x.name) ? vs : [...vs, makeVendor(x)]));
-        }
-      });
-      return arr;
-    });
-  };
-
-  const saveTask = (task) => {
-    if (task.id) applyTasks(tasks.map((x) => (x.id === task.id ? task : x)));
-    else applyTasks([...tasks, { ...task, id: "t" + Date.now() }]);
-    setEditing(null);
-  };
-  const deleteTask = (id) => { applyTasks(tasks.filter((x) => x.id !== id)); setEditing(null); };
-
-  const exportCSV = () => {
-    const rows = [["Task", "Type", "Category", "Priority", "Status", "Week", "Estimated", "Actual", "GL", "Due"]];
-    tasks.forEach((x) => rows.push([x.name, x.type, x.category, x.priority, x.status, x.week, x.est, x.actual, x.gl || "", x.due]));
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = "startwise-tasks.csv";
-    a.click();
-  };
-
-  if (phase === "login") return <><Login onLogin={() => setPhase("app")} onStart={() => setPhase("onboarding")} /><AppTweaks t={t} setTweak={setTweak} /></>;
-  if (phase === "onboarding")
-    return <><Onboarding onCancel={() => setPhase("login")} onDone={(data) => {
-      setBusiness({ ...business, businessName: data.biz.businessName, fullName: data.biz.fullName, industry: data.biz.industry, businessType: data.biz.businessType, stage: data.biz.stage, launchDate: data.biz.launchDate, smsReminders: data.sms, dateJoined: new Date().toISOString().slice(0, 10), setupAt: new Date().toISOString() });
-      setFunding(SWa.funding.map((f) => { const m = data.funds.find((d) => d.source === f.source); return m ? { ...f, on: m.on, amount: +m.amount || 0 } : f; }));
-      setUser({ name: data.biz.fullName || "Dana Rivera", role: "Admin" });
-      if (data.plan) {
-        setCoa(data.plan.coa);
-        const finTasks = data.plan.expenses.map(expenseToTask);
-        const stageT = (SWa.stageTasks[data.biz.stage] || SWa.stageTasks["Pre-Revenue"]).map((x, i) => ({ id: "n" + i, name: x.name, desc: x.desc, type: "Non-Financial", category: x.category, priority: x.priority, est: 0, actual: 0, week: x.week, due: SWa.due(x.week), status: "To Do" }));
-        setTasks([...finTasks, ...stageT]);
-        setVendors([]);
-      }
-      setPhase("app"); setRoute("dashboard");
-    }} /><AppTweaks t={t} setTweak={setTweak} /></>;
-
-  let screen = null;
-  if (route === "dashboard") screen = <Dashboard tasks={tasks} totalBudget={totalBudget} affirmation={SWa.affirmationOfDay()} smsOn={business.smsReminders} products={products} startingBalance={startingBalance} />;
-  else if (route === "plan") screen = <Plan tasks={tasks} setTasks={applyTasks} openEdit={setEditing} />;
-  else if (route === "budget") screen = <Budget tasks={tasks} setTasks={applyTasks} openEdit={setEditing} role={user.role} />;
-  else if (route === "products") screen = <Products products={products} setProducts={setProducts} openEdit={setEditingProduct} role={user.role} />;
-  else if (route === "revenue") screen = <Revenue products={products} startingBalance={startingBalance} />;
-  else if (route === "cashflow") screen = <CashFlow products={products} startingBalance={startingBalance} />;
-  else if (route === "reports") screen = <Reports tasks={tasks} />;
-  else if (route === "runbook") screen = <RunBook vendors={vendors} setVendors={setVendors} products={products} />;
-  else if (route === "coa") screen = <COA tasks={tasks} coa={coa} business={business} />;
-  else if (route === "business") screen = <BusinessInfo business={business} setBusiness={setBusiness} funding={funding} setFunding={setFunding} totalBudget={totalBudget} actualSpend={actualSpend} hoursLeft={hoursLeft} coa={coa} onRebuild={rebuildPlan} />;
-  else if (route === "knowledge") screen = <Knowledge onTour={() => setTour(true)} />;
-  else if (route === "legal") screen = <Legal business={business} setBusiness={setBusiness} />;
-
+function Login({ onLogin, onStart }) {
+  const { Input, Button } = DSauth;
+  const [email, setEmail] = useAuthState("dana@freshnestclean.com");
+  const [code, setCode] = useAuthState("SW-HC-2048");
   return (
-    <div data-density={t.density} style={{ display: "flex", minHeight: "100vh", background: "var(--cream-50)" }}>
-      <Sidebar route={route} setRoute={setRoute} accent={t.accent} business={business} edition={business.businessType} mobile={mobile} open={navOpen} onClose={() => setNavOpen(false)} />
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <TopBar title={ROUTE_TITLES[route]} user={user} onAddTask={() => setEditing({})} onLibrary={() => setLibrary(true)} onExport={exportCSV} onSignOut={() => setPhase("login")} onMenu={() => setNavOpen(true)} mobile={mobile} />
-        <main style={{ flex: 1, padding: "26px 28px 48px", maxWidth: 1320, width: "100%", margin: "0 auto" }}>{screen}</main>
+    <AuthShell>
+      <div style={{ background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 28 }}>
+        <h2 style={{ font: "700 20px var(--font-display)", color: "var(--ink-900)", margin: "0 0 4px" }}>Welcome back</h2>
+        <p style={{ fontSize: 13.5, color: "var(--ink-500)", margin: "0 0 20px" }}>Sign in to pick up your launch plan where you left off.</p>
+        <form onSubmit={(e) => { e.preventDefault(); onLogin(); }} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input label="Access code" value={code} onChange={(e) => setCode(e.target.value)} hint="Found in your welcome email." />
+          <Button variant="primary" size="lg" type="submit" style={{ marginTop: 4 }}>Sign in</Button>
+        </form>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 16, fontSize: 13, color: "var(--ink-500)" }}>
+          <a href="#" onClick={(e) => e.preventDefault()} style={{ color: "var(--navy-600)" }}>Forgot access code?</a>
+        </div>
       </div>
-      {editing && <TaskEditor task={editing} coa={coa} onSave={saveTask} onClose={() => setEditing(null)} onDelete={editing.id && user.role === "Admin" ? deleteTask : null} />}
-      {library && <TaskLibrary tasks={tasks} coa={coa} onAdd={(task) => applyTasks((prev) => [...prev, task])} onClose={() => setLibrary(false)} />}
-      {editingProduct && <ProductEditor product={editingProduct} onSave={saveProduct} onClose={() => setEditingProduct(null)} onDelete={editingProduct.id && user.role === "Admin" ? deleteProduct : null} />}
-      {tour && <Tour onClose={() => setTour(false)} />}
-      <AppTweaks t={t} setTweak={setTweak} user={user} setUser={setUser} />
-    </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "22px 0" }}>
+        <div style={{ flex: 1, height: 1, background: "var(--border-default)" }}></div>
+        <span style={{ fontSize: 11, color: "var(--ink-400)", letterSpacing: "0.08em" }}>NEW HERE?</span>
+        <div style={{ flex: 1, height: 1, background: "var(--border-default)" }}></div>
+      </div>
+      <button onClick={onStart} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", background: "#fff", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-md)", font: "600 14px var(--font-sans)", color: "var(--navy-700)", cursor: "pointer" }}>
+        <Icon name="sparkle" size={16} color="var(--gold-600)" /> Start a new business
+      </button>
+    </AuthShell>
   );
 }
 
-function AppTweaks({ t, setTweak, user, setUser }) {
+const INDUSTRIES = ["House Cleaning", "Landscaping", "HVAC", "Hair Salon", "Mobile Detailing", "Other"];
+const STAGES = ["Idea / Planning", "Pre-Revenue", "Just Launched", "Operating"];
+const FUND_OPTS = ["Personal Savings", "Friends & Family", "SBA Loan", "Business Loan", "Investor Funding", "Grants", "Credit Cards", "Equipment Financing", "Crowdfunding", "Other"];
+
+function Onboarding({ onDone, onCancel }) {
+  const { Input, Select, Checkbox, Switch, Button } = DSauth;
+  const [step, setStep] = useAuthState(0);
+  const [biz, setBiz] = useAuthState({ businessName: "", fullName: "", industry: "Home Service Industry", businessType: "Cleaning Companies", stage: "Idea / Planning", launchDate: "" });
+  const [funds, setFunds] = useAuthState(FUND_OPTS.map((s, i) => ({ source: s, on: i < 2, amount: i === 0 ? 12000 : i === 1 ? 5000 : 0 })));
+  const [sms, setSms] = useAuthState(true);
+  const [terms, setTerms] = useAuthState(false);
+  const [legalDoc, setLegalDoc] = useAuthState(null);
+
+  const [plan, setPlan] = useAuthState(null);
+  const total = funds.filter((f) => f.on).reduce((s, f) => s + (+f.amount || 0), 0);
+  const steps = ["Business", "AI plan", "Funding", "Launch & terms"];
+
+  const setFund = (i, patch) => setFunds(funds.map((f, j) => (j === i ? { ...f, ...patch } : f)));
+  const canNext = step === 0 ? (biz.businessName.trim() && biz.fullName.trim()) : step === 1 ? !!plan : step === 3 ? terms : true;
+
   return (
-    <TweaksPanel title="Tweaks">
-      <TweakSection label="Theme" />
-      <TweakColor label="Sidebar accent" value={t.accent} options={ACCENTS} onChange={(v) => setTweak("accent", v)} />
-      <TweakSection label="Layout" />
-      <TweakRadio label="Table density" value={t.density} options={["compact", "comfortable"]} onChange={(v) => setTweak("density", v)} />
-      {user && (
-        <>
-          <TweakSection label="Demo" />
-          <TweakRadio label="Acting as" value={user.role} options={["Admin", "Member"]} onChange={(v) => setUser({ ...user, role: v, name: v === "Admin" ? "Dana Rivera" : "Sam Chen" })} />
-        </>
-      )}
-    </TweaksPanel>
+    <AuthShell wide>
+      <div style={{ background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 30 }}>
+        {/* stepper */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+          {steps.map((s, i) => (
+            <div key={s} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
+              <div style={{ height: 4, borderRadius: 999, background: i <= step ? "var(--forest-600)" : "var(--cream-100)", transition: "background .2s" }}></div>
+              <span style={{ fontSize: 11, fontWeight: 600, color: i <= step ? "var(--forest-700)" : "var(--ink-400)" }}>{i + 1}. {s}</span>
+            </div>
+          ))}
+        </div>
+
+        {step === 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <h2 style={{ font: "700 19px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>Tell us about your business</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <Input label="Your name" placeholder="e.g. Dana Rivera" value={biz.fullName} onChange={(e) => setBiz({ ...biz, fullName: e.target.value })} />
+              <Input label="Business name" placeholder="e.g. FreshNest Cleaning Co." value={biz.businessName} onChange={(e) => setBiz({ ...biz, businessName: e.target.value })} />
+              <Select label="Business type" value={biz.businessType} onChange={(e) => { const bt = e.target.value; setBiz({ ...biz, businessType: bt, industry: StartWiseData.typeToIndustry[bt] || biz.industry }); setPlan(null); }}>{StartWiseData.allBusinessTypes.map((x) => <option key={x}>{x}</option>)}</Select>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <label style={{ font: "600 12px var(--font-sans)", color: "var(--ink-700)" }}>Industry <span style={{ color: "var(--ink-400)", fontWeight: 400 }}>· auto-filled</span></label>
+                <div style={{ padding: "0 12px", height: "var(--control-md)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", fontSize: 14, background: "var(--cream-100)", color: "var(--ink-700)", display: "flex", alignItems: "center", gap: 8 }}><Icon name="briefcase" size={15} color="var(--ink-400)" />{biz.industry}</div>
+              </div>
+            </div>
+            <Select label="Business stage" value={biz.stage} onChange={(e) => setBiz({ ...biz, stage: e.target.value })}>{STAGES.map((x) => <option key={x}>{x}</option>)}</Select>
+            <Callout icon="lock"><strong>Heads up:</strong> after 15 days your business name, industry, and type lock to your license. Next, AI builds a Chart of Accounts tailored to a {biz.businessType}.</Callout>
+          </div>
+        )}
+
+        {step === 1 && (
+          <AiGenerate industry={biz.industry} businessType={biz.businessType} stage={biz.stage} plan={plan} onPlan={setPlan} />
+        )}
+
+        {step === 2 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <h2 style={{ font: "700 19px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>How are you funding the launch?</h2>
+            <p style={{ fontSize: 13, color: "var(--ink-500)", margin: 0 }}>Check every source you'll use and enter an amount. We'll total your startup budget.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {funds.map((f, i) => (
+                <label key={f.source} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", border: `1px solid ${f.on ? "var(--forest-500)" : "var(--border-default)"}`, background: f.on ? "var(--forest-050)" : "#fff", borderRadius: "var(--radius-md)", cursor: "pointer", transition: "all .13s" }}>
+                  <input type="checkbox" checked={f.on} onChange={(e) => setFund(i, { on: e.target.checked })} style={{ accentColor: "var(--forest-600)", width: 16, height: 16 }} />
+                  <span style={{ flex: 1, fontSize: 13.5, color: "var(--ink-800)", fontWeight: 500 }}>{f.source}</span>
+                  {f.on && (
+                    <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                      <span style={{ color: "var(--ink-400)", fontSize: 13 }}>$</span>
+                      <input type="number" value={f.amount} onChange={(e) => setFund(i, { amount: e.target.value })} onClick={(e) => e.preventDefault()} style={{ width: 78, padding: "5px 7px", border: "1px solid var(--border-default)", borderRadius: 6, fontSize: 13, fontFamily: "var(--font-mono)" }} />
+                    </span>
+                  )}
+                </label>
+              ))}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", background: "var(--navy-900)", borderRadius: "var(--radius-md)", color: "#fff" }}>
+              <span style={{ fontSize: 13, color: "var(--text-on-dark-muted)" }}>Total startup budget</span>
+              <span style={{ font: "800 24px var(--font-display)" }}>{StartWiseData.fmt0(total)}</span>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <h2 style={{ font: "700 19px var(--font-display)", margin: 0, color: "var(--ink-900)" }}>When do you want to launch?</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "end" }}>
+              <Input label="Target launch date" type="date" value={biz.launchDate} onChange={(e) => setBiz({ ...biz, launchDate: e.target.value })} hint="We'll build your 12-week plan backward from here." />
+              <div style={{ paddingBottom: 8 }}><Switch label="Daily SMS reminders" checked={sms} onChange={(e) => setSms(e.target.checked)} /></div>
+            </div>
+            {sms && (
+              <div style={{ display: "flex", gap: 12, background: "var(--navy-900)", borderRadius: "var(--radius-md)", padding: "14px 16px", color: "#fff" }}>
+                <Icon name="sparkle" size={18} color="var(--gold-400)" style={{ flexShrink: 0, marginTop: 1 }} />
+                <div>
+                  <div style={{ font: "600 9px var(--font-mono)", letterSpacing: "0.12em", color: "var(--gold-400)" }}>EVERY DAILY SMS INCLUDES AN AFFIRMATION</div>
+                  <div style={{ fontSize: 13.5, marginTop: 4, lineHeight: 1.45 }}>“{(StartWiseData.affirmationOfDay() || {}).text}”</div>
+                </div>
+              </div>
+            )}
+            <div style={{ background: "var(--cream-100)", border: "1px solid var(--border-default)", borderRadius: "var(--radius-md)", padding: 18 }}>
+              <div style={{ font: "600 9.5px var(--font-mono)", letterSpacing: "0.12em", color: "var(--ink-500)", marginBottom: 10 }}>BEFORE YOU START</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: "var(--ink-600)", marginBottom: 14 }}>
+                {(window.LEGAL_DOCS || []).map((d) => (
+                  <a key={d.id} href="#" onClick={(e) => { e.preventDefault(); setLegalDoc(d); }} style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--navy-600)" }}><Icon name="file" size={15} /> {d.title}</a>
+                ))}
+              </div>
+              <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}>
+                <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} style={{ accentColor: "var(--forest-600)", width: 17, height: 17, marginTop: 1 }} />
+                <span style={{ fontSize: 13, color: "var(--ink-700)" }}>I've reviewed and accept the Terms, Privacy Policy, and License Agreement. {terms && <span style={{ color: "var(--ink-400)" }}>· accepted {new Date().toLocaleDateString()}</span>}</span>
+              </label>
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 26 }}>
+          <button onClick={() => (step === 0 ? onCancel() : setStep(step - 1))} style={{ ...btnGhost, background: "transparent", border: "none", color: "var(--ink-500)" }}>{step === 0 ? "Cancel" : "Back"}</button>
+          {step < 3 ? (
+            <Button variant="primary" disabled={!canNext} onClick={() => canNext && setStep(step + 1)} rightIcon={<Icon name="arrowRight" size={16} />}>Continue</Button>
+          ) : (
+            <Button variant="primary" disabled={!terms} onClick={() => onDone({ biz, funds, sms, terms, total, plan })} rightIcon={<Icon name="check" size={16} />}>Launch my plan</Button>
+          )}
+        </div>
+      </div>
+      {legalDoc && <LegalModal doc={legalDoc} onClose={() => setLegalDoc(null)} />}
+    </AuthShell>
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+Object.assign(window, { Login, Onboarding });

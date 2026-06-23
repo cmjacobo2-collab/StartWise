@@ -22,16 +22,23 @@ function AuthShell({ children, wide }) {
 
 function Login({ onLogin, onStart }) {
   const { Input, Button } = DSauth;
-  const [email, setEmail] = useAuthState("dana@freshnestclean.com");
-  const [code, setCode] = useAuthState("SW-HC-2048");
+  const [email, setEmail] = useAuthState("");
+  const [code, setCode] = useAuthState("");
+  const [error, setError] = useAuthState(false);
+  const submit = (e) => {
+    e.preventDefault();
+    const ok = email.trim().toLowerCase() === "dana@freshnestclean.com" && code.trim().toUpperCase() === "SW-HC-2048";
+    if (ok) { setError(false); onLogin(); } else { setError(true); }
+  };
   return (
     <AuthShell>
       <div style={{ background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 28 }}>
         <h2 style={{ font: "700 20px var(--font-display)", color: "var(--ink-900)", margin: "0 0 4px" }}>Welcome back</h2>
         <p style={{ fontSize: 13.5, color: "var(--ink-500)", margin: "0 0 20px" }}>Sign in to pick up your launch plan where you left off.</p>
-        <form onSubmit={(e) => { e.preventDefault(); onLogin(); }} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Input label="Access code" value={code} onChange={(e) => setCode(e.target.value)} hint="Found in your welcome email." />
+        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <Input label="Email" type="email" placeholder="you@example.com" value={email} onChange={(e) => { setEmail(e.target.value); setError(false); }} />
+          <Input label="Access code" placeholder="Enter your access code" value={code} onChange={(e) => { setCode(e.target.value); setError(false); }} hint="Found in your welcome email." />
+          {error && <div style={{ fontSize: 12.5, color: "var(--red-600)", marginTop: -2 }}>Email or access code not recognized. Check your welcome email.</div>}
           <Button variant="primary" size="lg" type="submit" style={{ marginTop: 4 }}>Sign in</Button>
         </form>
         <div style={{ display: "flex", justifyContent: "center", marginTop: 16, fontSize: 13, color: "var(--ink-500)" }}>

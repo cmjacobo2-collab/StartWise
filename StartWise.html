@@ -100,10 +100,20 @@
   <script src="vendor-library.js"></script>
   <script src="task-catalog.js"></script>
 
-  <!-- Supabase backend (accounts + database) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>window.supabase || document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');</script>
-  <script src="supabase-client.js"></script>
+  <!-- Supabase backend (accounts + database) — loaded asynchronously so it never blocks the app -->
+  <script>
+    (function () {
+      function add(src, onload, onerror) {
+        var el = document.createElement("script"); el.src = src; el.async = true;
+        if (onload) el.onload = onload; if (onerror) el.onerror = onerror;
+        document.head.appendChild(el);
+      }
+      function loadClient() { add("supabase-client.js"); }
+      add("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", loadClient, function () {
+        add("https://unpkg.com/@supabase/supabase-js@2", loadClient, function () { window.SW = { ready: false }; });
+      });
+    })();
+  </script>
 </head>
 <body>
   <div id="root"></div>
@@ -141,13 +151,15 @@
   <!-- Boot guard: show a clear message instead of a blank page if libraries never load -->
   <script>
     window.addEventListener("load", function () {
-      setTimeout(function () {
-        var mounted = document.getElementById("root") && document.getElementById("root").childElementCount > 0;
-        if (!window.React || !window.Babel || !mounted) {
-          var el = document.getElementById("__sw_boot_error");
-          if (el) el.style.display = "grid";
-        }
-      }, 2500);
+      var tries = 0;
+      var el = document.getElementById("__sw_boot_error");
+      var iv = setInterval(function () {
+        tries++;
+        var root = document.getElementById("root");
+        var mounted = root && root.childElementCount > 0;
+        if (mounted) { if (el) el.style.display = "none"; clearInterval(iv); return; }
+        if (tries >= 12) { if (el) el.style.display = "grid"; clearInterval(iv); }
+      }, 1000);
     });
   </script>
 

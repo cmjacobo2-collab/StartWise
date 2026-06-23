@@ -1,7 +1,7 @@
 /* StartWise service worker.
    Network-first for the page + app code (so updates always show when online),
    cache-first for static assets (fonts, images). Falls back to cache offline. */
-const CACHE = "startwise-v5";
+const CACHE = "startwise-v6";
 const CORE = [
   "StartWise.html",
   "manifest.webmanifest",

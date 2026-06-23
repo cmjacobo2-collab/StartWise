@@ -87,8 +87,6 @@
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
   <script>window.ReactDOM || document.write('<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"><\/script>');</script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
-  <script>window.Babel || document.write('<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"><\/script>');</script>
 
   <!-- Design system bundle (plain JS) + seed data modules (plain JS) -->
   <script src="ds-bundle.js"></script>
@@ -136,17 +134,17 @@
   </template>
 
   <!-- App modules (JSX, transpiled in-browser by Babel) -->
-  <script type="text/babel" src="tweaks-panel.jsx"></script>
-  <script type="text/babel" src="charts.jsx"></script>
-  <script type="text/babel" src="shell.jsx"></script>
-  <script type="text/babel" src="ai-setup.jsx"></script>
-  <script type="text/babel" src="auth.jsx"></script>
-  <script type="text/babel" src="screens-core.jsx"></script>
-  <script type="text/babel" src="screens-more.jsx"></script>
-  <script type="text/babel" src="screens-extra.jsx"></script>
-  <script type="text/babel" src="screens-finance.jsx"></script>
-  <script type="text/babel" src="screens-revenue.jsx"></script>
-  <script type="text/babel" src="app.jsx"></script>
+  <script src="tweaks-panel.js"></script>
+  <script src="charts.js"></script>
+  <script src="shell.js"></script>
+  <script src="ai-setup.js"></script>
+  <script src="auth.js"></script>
+  <script src="screens-core.js"></script>
+  <script src="screens-more.js"></script>
+  <script src="screens-extra.js"></script>
+  <script src="screens-finance.js"></script>
+  <script src="screens-revenue.js"></script>
+  <script src="app.js"></script>
 
   <!-- Boot guard: show a clear message instead of a blank page if libraries never load -->
   <script>

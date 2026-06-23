@@ -1,5 +1,5 @@
 /* StartWise — root app: state, routing, tweaks, cross-screen flows */
-const { useState: useApp, useMemo: useAppM, useRef } = React;
+const { useState: useApp, useMemo: useAppM, useRef, useEffect: useAppE } = React;
 const SWa = window.StartWiseData;
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -82,6 +82,19 @@ function App() {
   const mobile = useIsMobile();
   const [navOpen, setNavOpen] = useApp(false);
 
+  // Stage 2: if a real Supabase session already exists, sign in automatically on load.
+  useAppE(() => {
+    if (!window.SW || !window.SW.ready) return;
+    window.SW.getSession().then(function (res) {
+      var session = res && res.data && res.data.session;
+      if (session) {
+        var em = session.user && session.user.email;
+        if (em) setUser({ name: em, role: "Admin" });
+        setPhase("app");
+      }
+    }).catch(function () {});
+  }, []);
+
   const totalBudget = useAppM(() => funding.filter((f) => f.on).reduce((s, f) => s + (+f.amount || 0), 0), [funding]);
   const actualSpend = useAppM(() => tasks.filter((x) => x.type === "Financial").reduce((s, x) => s + (+x.actual || 0), 0), [tasks]);
   const startingBalance = Math.max(0, totalBudget - actualSpend);
@@ -138,7 +151,7 @@ function App() {
     a.click();
   };
 
-  if (phase === "login") return <><Login onLogin={() => setPhase("app")} onStart={() => setPhase("onboarding")} /><AppTweaks t={t} setTweak={setTweak} /></>;
+  if (phase === "login") return <><Login onLogin={(auth) => { if (auth && auth.email) setUser({ name: auth.email, role: "Admin" }); setPhase("app"); }} onStart={() => setPhase("onboarding")} /><AppTweaks t={t} setTweak={setTweak} /></>;
   if (phase === "onboarding")
     return <><Onboarding onCancel={() => setPhase("login")} onDone={(data) => {
       setBusiness({ ...business, businessName: data.biz.businessName, fullName: data.biz.fullName, industry: data.biz.industry, businessType: data.biz.businessType, stage: data.biz.stage, launchDate: data.biz.launchDate, smsReminders: data.sms, dateJoined: new Date().toISOString().slice(0, 10), setupAt: new Date().toISOString() });
@@ -172,7 +185,7 @@ function App() {
     <div data-density={t.density} style={{ display: "flex", minHeight: "100vh", background: "var(--cream-50)" }}>
       <Sidebar route={route} setRoute={setRoute} accent={t.accent} business={business} edition={business.businessType} mobile={mobile} open={navOpen} onClose={() => setNavOpen(false)} />
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <TopBar title={ROUTE_TITLES[route]} user={user} onAddTask={() => setEditing({})} onLibrary={() => setLibrary(true)} onExport={exportCSV} onSignOut={() => setPhase("login")} onMenu={() => setNavOpen(true)} mobile={mobile} />
+        <TopBar title={ROUTE_TITLES[route]} user={user} onAddTask={() => setEditing({})} onLibrary={() => setLibrary(true)} onExport={exportCSV} onSignOut={async () => { if (window.SW && window.SW.ready) { try { await window.SW.signOut(); } catch (e) {} } setPhase("login"); }} onMenu={() => setNavOpen(true)} mobile={mobile} />
         <main style={{ flex: 1, padding: "26px 28px 48px", maxWidth: 1320, width: "100%", margin: "0 auto" }}>{screen}</main>
       </div>
       {editing && <TaskEditor task={editing} coa={coa} onSave={saveTask} onClose={() => setEditing(null)} onDelete={editing.id && user.role === "Admin" ? deleteTask : null} />}

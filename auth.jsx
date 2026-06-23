@@ -22,27 +22,54 @@ function AuthShell({ children, wide }) {
 
 function Login({ onLogin, onStart }) {
   const { Input, Button } = DSauth;
+  const [mode, setMode] = useAuthState("signin"); // signin | signup
   const [email, setEmail] = useAuthState("");
-  const [code, setCode] = useAuthState("");
-  const [error, setError] = useAuthState(false);
-  const submit = (e) => {
+  const [password, setPassword] = useAuthState("");
+  const [error, setError] = useAuthState("");
+  const [notice, setNotice] = useAuthState("");
+  const [loading, setLoading] = useAuthState(false);
+
+  const isDemo = (em, pw) => em.trim().toLowerCase() === "dana@freshnestclean.com" && pw.trim().toUpperCase() === "SW-HC-2048";
+
+  const submit = async (e) => {
     e.preventDefault();
-    const ok = email.trim().toLowerCase() === "dana@freshnestclean.com" && code.trim().toUpperCase() === "SW-HC-2048";
-    if (ok) { setError(false); onLogin(); } else { setError(true); }
+    setError(""); setNotice("");
+    if (mode === "signin" && isDemo(email, password)) { onLogin({ demo: true, email: email.trim() }); return; }
+    if (!window.SW || !window.SW.ready) { setError("Couldn't reach the server. Check your connection and try again."); return; }
+    if (!email.trim() || !password) { setError("Enter your email and password."); return; }
+    setLoading(true);
+    try {
+      if (mode === "signup") {
+        const { data, error: err } = await window.SW.signUp(email, password);
+        if (err) setError(err.message);
+        else if (data && data.session) onLogin({ session: data.session, email: email.trim() });
+        else { setNotice("Account created. Check your email to confirm, then sign in."); setMode("signin"); setPassword(""); }
+      } else {
+        const { data, error: err } = await window.SW.signIn(email, password);
+        if (err) setError(err.message);
+        else onLogin({ session: data.session, email: email.trim() });
+      }
+    } catch (ex) { setError("Something went wrong. Please try again."); }
+    setLoading(false);
   };
+
+  const signupMode = mode === "signup";
   return (
     <AuthShell>
       <div style={{ background: "#fff", border: "1px solid var(--border-default)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 28 }}>
-        <h2 style={{ font: "700 20px var(--font-display)", color: "var(--ink-900)", margin: "0 0 4px" }}>Welcome back</h2>
-        <p style={{ fontSize: 13.5, color: "var(--ink-500)", margin: "0 0 20px" }}>Sign in to pick up your launch plan where you left off.</p>
+        <h2 style={{ font: "700 20px var(--font-display)", color: "var(--ink-900)", margin: "0 0 4px" }}>{signupMode ? "Create your account" : "Welcome back"}</h2>
+        <p style={{ fontSize: 13.5, color: "var(--ink-500)", margin: "0 0 20px" }}>{signupMode ? "Set up your sign-in for StartWise." : "Sign in to pick up your launch plan where you left off."}</p>
         <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <Input label="Email" type="email" placeholder="you@example.com" value={email} onChange={(e) => { setEmail(e.target.value); setError(false); }} />
-          <Input label="Access code" placeholder="Enter your access code" value={code} onChange={(e) => { setCode(e.target.value); setError(false); }} hint="Found in your welcome email." />
-          {error && <div style={{ fontSize: 12.5, color: "var(--red-600)", marginTop: -2 }}>Email or access code not recognized. Check your welcome email.</div>}
-          <Button variant="primary" size="lg" type="submit" style={{ marginTop: 4 }}>Sign in</Button>
+          <Input label="Email" type="email" placeholder="you@example.com" value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} />
+          <Input label="Password" type="password" placeholder={signupMode ? "At least 6 characters" : "Your password"} value={password} onChange={(e) => { setPassword(e.target.value); setError(""); }} />
+          {error && <div style={{ fontSize: 12.5, color: "var(--red-600)", marginTop: -2 }}>{error}</div>}
+          {notice && <div style={{ fontSize: 12.5, color: "var(--forest-700)", marginTop: -2 }}>{notice}</div>}
+          <Button variant="primary" size="lg" type="submit" disabled={loading} style={{ marginTop: 4, opacity: loading ? 0.7 : 1 }}>{loading ? "Please wait\u2026" : (signupMode ? "Create account" : "Sign in")}</Button>
         </form>
         <div style={{ display: "flex", justifyContent: "center", marginTop: 16, fontSize: 13, color: "var(--ink-500)" }}>
-          <a href="#" onClick={(e) => e.preventDefault()} style={{ color: "var(--navy-600)" }}>Forgot access code?</a>
+          {signupMode
+            ? <span>Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); setMode("signin"); setError(""); setNotice(""); }} style={{ color: "var(--navy-600)" }}>Sign in</a></span>
+            : <span>New to StartWise? <a href="#" onClick={(e) => { e.preventDefault(); setMode("signup"); setError(""); setNotice(""); }} style={{ color: "var(--navy-600)" }}>Create an account</a></span>}
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "22px 0" }}>

@@ -35,9 +35,18 @@ function Login({ onLogin, onStart }) {
     e.preventDefault();
     setError(""); setNotice("");
     if (mode === "signin" && isDemo(email, password)) { onLogin({ demo: true, email: email.trim() }); return; }
-    if (!window.SW || !window.SW.ready) { setError("Couldn't reach the server. Check your connection and try again."); return; }
     if (!email.trim() || !password) { setError("Enter your email and password."); return; }
     setLoading(true);
+    // Supabase loads in the background — wait up to 6s for it before giving up.
+    let ready = !!(window.SW && window.SW.ready);
+    if (!ready) {
+      const start = Date.now();
+      while (Date.now() - start < 6000) {
+        await new Promise((r) => setTimeout(r, 150));
+        if (window.SW && window.SW.ready) { ready = true; break; }
+      }
+    }
+    if (!ready) { setError("Couldn't reach the server. Check your connection and try again."); setLoading(false); return; }
     try {
       if (mode === "signup") {
         const { data, error: err } = await window.SW.signUp(email, password);
